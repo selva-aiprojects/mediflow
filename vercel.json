@@ -1,13 +1,17 @@
 {
   "version": 2,
   "name": "medflow",
-  "installCommand": "npm install --include=dev",
+  "installCommand": "npm install --include=dev && cd backend && npx prisma generate && npx nest build",
   "builds": [
     {
       "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"]
+        "includeFiles": [
+          "backend/dist/**",
+          "backend/node_modules/**",
+          "backend/prisma/**"
+        ]
       }
     },
     {
