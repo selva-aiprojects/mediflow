@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "medflow",
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "builds": [
     {
       "src": "api/index.ts",
@@ -14,7 +14,7 @@
       "src": "frontend/package.json",
       "use": "@vercel/static",
       "config": {
-        "installCommand": "npm install",
+        "installCommand": "npm install --include=dev",
         "buildCommand": "npm run build",
         "outputDirectory": "dist"
       }
