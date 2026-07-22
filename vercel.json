@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "medflow",
-  "installCommand": "npm install --include=dev && npm run build:backend && npm run build:frontend",
+  "installCommand": "npm install --include=dev && npm run --workspace=backend build && npm run --workspace=frontend build",
   "builds": [
     {
       "src": "api/index.ts",
