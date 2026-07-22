@@ -1,0 +1,1032 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// PUBLIC SCHEMA - Shared across all tenants
+// ============================================================
+
+model Tenant {
+  id                 String   @id @default(uuid())
+  name               String   @db.VarChar(255)
+  subdomain          String   @unique @db.VarChar(100)
+  customDomain       String?  @unique @db.VarChar(255)
+  logoUrl            String?  @db.Text
+  addressLine1       String?  @db.VarChar(255)
+  addressLine2       String?  @db.VarChar(255)
+  city               String?  @db.VarChar(100)
+  state              String?  @db.VarChar(100)
+  pincode            String?  @db.VarChar(10)
+  country            String?  @default("India") @db.VarChar(100)
+  phone              String?  @db.VarChar(20)
+  email              String?  @db.VarChar(255)
+  gstin              String?  @db.VarChar(15)
+  drugLicenseNo      String?  @db.VarChar(50)
+  licenseExpiryDate  DateTime? @db.Date
+  isActive           Boolean  @default(true)
+  subscriptionPlan   String   @default("basic") @db.VarChar(50)
+  subscriptionStatus String   @default("active") @db.VarChar(50)
+  subscriptionStart  DateTime? @db.Timestamptz()
+  subscriptionEnd    DateTime? @db.Timestamptz()
+  maxStores          Int      @default(1)
+  maxUsers           Int      @default(5)
+  features           Json     @default("{}")
+  settings           Json     @default("{}")
+  schemaName         String   @unique @db.VarChar(100)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  @@map("tenants")
+}
+
+// ============================================================
+// PER-TENANT SCHEMA TABLES
+// ============================================================
+
+model Store {
+  id            String   @id @default(uuid())
+  code          String   @unique @db.VarChar(50)
+  name          String   @db.VarChar(255)
+  addressLine1  String?  @db.VarChar(255)
+  addressLine2  String?  @db.VarChar(255)
+  city          String?  @db.VarChar(100)
+  state         String?  @db.VarChar(100)
+  pincode       String?  @db.VarChar(10)
+  phone         String?  @db.VarChar(20)
+  email         String?  @db.VarChar(255)
+  gstin         String?  @db.VarChar(15)
+  drugLicenseNo String?  @db.VarChar(50)
+  isActive      Boolean  @default(true)
+  isHeadOffice  Boolean  @default(false)
+  openingTime   String?  @default("09:00:00")
+  closingTime   String?  @default("21:00:00")
+  settings      Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  users             User[]
+  racks             Rack[]
+  batches           Batch[]
+  customers         Customer[]
+  salesBills        SalesBill[]
+  purchaseOrders    PurchaseOrder[]
+  goodsReceiptNotes GoodsReceiptNote[]
+  purchaseInvoices  PurchaseInvoice[]
+  customerReturns   CustomerReturn[]
+  supplierReturns   SupplierReturn[]
+  stockTransfersFrom  StockTransfer[] @relation("FromStore")
+  stockTransfersTo    StockTransfer[] @relation("ToStore")
+  stockAdjustments  StockAdjustment[]
+  barcodeLabels     BarcodeLabel[]
+  purchaseSuggestions PurchaseSuggestion[]
+  dailySummaries    DailySummary[]
+  userSessions      UserSession[]
+  notificationLogs  NotificationLog[]
+  auditLogs         AuditLog[]
+
+  @@map("stores")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  storeId       String?
+  employeeCode  String?   @unique @db.VarChar(50)
+  firstName     String    @db.VarChar(100)
+  lastName      String?   @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  phone         String?   @unique @db.VarChar(20)
+  passwordHash  String    @db.VarChar(255)
+  role          String    @default("cashier") @db.VarChar(50)
+  isActive      Boolean   @default(true)
+  isFirstLogin  Boolean   @default(true)
+  lastLoginAt   DateTime? @db.Timestamptz()
+  profilePicUrl String?   @db.Text
+  preferences   Json      @default("{}")
+  refreshToken  String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  store                    Store?                @relation(fields: [storeId], references: [id])
+  cancelledSalesBills      SalesBill[]           @relation("CancelledBy")
+  createdSalesBills        SalesBill[]           @relation("CreatedBy")
+  payments                 Payment[]             @relation("PaymentCreatedBy")
+  approvedPurchaseOrders   PurchaseOrder[]       @relation("ApprovedBy")
+  createdPurchaseOrders    PurchaseOrder[]       @relation("CreatedBy")
+  createdGRNs              GoodsReceiptNote[]    @relation("GRNCreatedBy")
+  createdInvoices          PurchaseInvoice[]     @relation("InvoiceCreatedBy")
+  createdPurchasePayments  PurchasePayment[]     @relation("PaymentCreatedBy")
+  createdCustomerReturns   CustomerReturn[]      @relation("ReturnCreatedBy")
+  createdSupplierReturns   SupplierReturn[]      @relation("SupplierReturnCreatedBy")
+  approvedStockTransfers   StockTransfer[]       @relation("TransferApprovedBy")
+  receivedStockTransfers   StockTransfer[]       @relation("TransferReceivedBy")
+  createdStockTransfers    StockTransfer[]       @relation("TransferCreatedBy")
+  approvedStockAdjustments StockAdjustment[]     @relation("AdjustmentApprovedBy")
+  createdStockAdjustments  StockAdjustment[]     @relation("AdjustmentCreatedBy")
+  createdBarcodeLabels     BarcodeLabel[]        @relation("LabelCreatedBy")
+  userSessions             UserSession[]
+  auditLogs                AuditLog[]
+  notifications            NotificationLog[]
+  verifiedPrescriptions    Prescription[]        @relation("VerifiedBy")
+
+  @@map("users")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique @db.VarChar(255)
+  description String?   @db.Text
+  parentId    String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  parent     Category?  @relation("CategoryParent", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryParent")
+  medicines  Medicine[]
+
+  @@map("categories")
+}
+
+model Manufacturer {
+  id             String   @id @default(uuid())
+  name           String   @unique @db.VarChar(255)
+  addressLine1   String?  @db.VarChar(255)
+  addressLine2   String?  @db.VarChar(255)
+  city           String?  @db.VarChar(100)
+  state          String?  @db.VarChar(100)
+  pincode        String?  @db.VarChar(10)
+  phone          String?  @db.VarChar(20)
+  email          String?  @db.VarChar(255)
+  drugLicenseNo  String?  @db.VarChar(50)
+  gstin          String?  @db.VarChar(15)
+  contactPerson  String?  @db.VarChar(255)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  medicines Medicine[]
+
+  @@map("manufacturers")
+}
+
+model Supplier {
+  id              String    @id @default(uuid())
+  companyName     String    @db.VarChar(255)
+  contactPerson   String?   @db.VarChar(255)
+  gstin           String?   @db.VarChar(15)
+  drugLicenseNo   String?   @db.VarChar(50)
+  addressLine1    String?   @db.VarChar(255)
+  addressLine2    String?   @db.VarChar(255)
+  city            String?   @db.VarChar(100)
+  state           String?   @db.VarChar(100)
+  pincode         String?   @db.VarChar(10)
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(255)
+  creditDays      Int       @default(0)
+  creditLimit     Decimal?  @default(0) @db.Decimal(12, 2)
+  openingBalance  Decimal?  @default(0) @db.Decimal(12, 2)
+  currentBalance  Decimal?  @default(0) @db.Decimal(12, 2)
+  isActive        Boolean   @default(true)
+  paymentTerms    String?   @db.VarChar(100)
+  leadTimeDays    Int       @default(3)
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  medicineSuppliers  MedicineSupplier[]
+  batches            Batch[]
+  purchaseOrders     PurchaseOrder[]
+  goodsReceiptNotes  GoodsReceiptNote[]
+  purchaseInvoices   PurchaseInvoice[]
+  supplierReturns    SupplierReturn[]
+  purchaseSuggestions PurchaseSuggestion[]
+
+  @@map("suppliers")
+}
+
+model Medicine {
+  id                      String   @id @default(uuid())
+  categoryId              String?
+  manufacturerId          String?
+  brandName               String   @db.VarChar(255)
+  genericName             String?  @db.VarChar(255)
+  strength                String?  @db.VarChar(50)
+  form                    String   @db.VarChar(50)
+  schedule                String?  @db.VarChar(10)
+  packageSize             String?  @db.VarChar(50)
+  unitType                String   @default("strip") @db.VarChar(50)
+  unitsPerPackage         Int?
+  hsnCode                 String?  @db.VarChar(10)
+  gstPercent              Decimal? @default(0) @db.Decimal(5, 2)
+  isBatchEnabled          Boolean  @default(true)
+  isExpiryEnabled         Boolean  @default(true)
+  isPrescriptionRequired  Boolean  @default(false)
+  isActive                Boolean  @default(true)
+  rackId                  String?
+  minStockLevel           Int      @default(10)
+  maxStockLevel           Int      @default(500)
+  reorderLevel            Int      @default(50)
+  safetyStock             Int      @default(20)
+  leadTimeDays            Int      @default(2)
+  imageUrl                String?  @db.Text
+  barcode                 String?  @unique @db.VarChar(100)
+  alternateBarcodes       String[]
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  deletedAt               DateTime?
+
+  category                Category?            @relation(fields: [categoryId], references: [id])
+  manufacturer            Manufacturer?        @relation(fields: [manufacturerId], references: [id])
+  medicineSuppliers       MedicineSupplier[]
+  batches                 Batch[]
+  salesItems              SalesItem[]
+  purchaseOrderItems      PurchaseOrderItem[]
+  goodsReceiptItems       GoodsReceiptItem[]
+  customerReturnItems     CustomerReturnItem[]
+  supplierReturnItems     SupplierReturnItem[]
+  stockTransferItems      StockTransferItem[]
+  stockAdjustmentItems    StockAdjustmentItem[]
+  barcodeLabels           BarcodeLabel[]
+  purchaseSuggestions     PurchaseSuggestion[]
+
+  @@map("medicines")
+}
+
+model MedicineSupplier {
+  id            String   @id @default(uuid())
+  medicineId    String
+  supplierId    String
+  supplierCode  String?  @db.VarChar(100)
+  purchasePrice Decimal? @db.Decimal(12, 2)
+  isPreferred   Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@unique([medicineId, supplierId])
+  @@map("medicine_suppliers")
+}
+
+model Rack {
+  id          String   @id @default(uuid())
+  storeId     String
+  code        String   @db.VarChar(50)
+  name        String?  @db.VarChar(255)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  store    Store     @relation(fields: [storeId], references: [id])
+  batches  Batch[]
+  goodsReceiptItems GoodsReceiptItem[]
+
+  @@unique([storeId, code])
+  @@map("racks")
+}
+
+model Batch {
+  id               String   @id @default(uuid())
+  medicineId       String
+  storeId          String
+  supplierId       String?
+  rackId           String?
+  batchNo          String   @db.VarChar(100)
+  mrp              Decimal  @db.Decimal(12, 2)
+  purchasePrice    Decimal  @db.Decimal(12, 2)
+  sellingPrice     Decimal  @db.Decimal(12, 2)
+  gstPercent       Decimal  @default(0) @db.Decimal(5, 2)
+  quantity         Int      @default(0)
+  reservedQuantity Int      @default(0)
+  initialQuantity  Int      @default(0)
+  manufactureDate  DateTime? @db.Date
+  expiryDate       DateTime? @db.Date
+  location         String?  @db.VarChar(100)
+  isActive         Boolean  @default(true)
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  medicine              Medicine                 @relation(fields: [medicineId], references: [id])
+  store                 Store                    @relation(fields: [storeId], references: [id])
+  supplier              Supplier?                @relation(fields: [supplierId], references: [id])
+  rack                  Rack?                    @relation(fields: [rackId], references: [id])
+  salesItems            SalesItem[]
+  customerReturnItems   CustomerReturnItem[]
+  supplierReturnItems   SupplierReturnItem[]
+  stockTransferItems    StockTransferItem[]
+  stockAdjustmentItems  StockAdjustmentItem[]
+  barcodeLabels         BarcodeLabel[]
+
+  @@unique([medicineId, storeId, batchNo])
+  @@map("batches")
+}
+
+model Customer {
+  id              String   @id @default(uuid())
+  storeId         String?
+  customerCode    String?  @unique @db.VarChar(50)
+  firstName       String   @db.VarChar(100)
+  lastName        String?  @db.VarChar(100)
+  mobile          String   @unique @db.VarChar(20)
+  email           String?  @db.VarChar(255)
+  addressLine1    String?  @db.VarChar(255)
+  addressLine2    String?  @db.VarChar(255)
+  city            String?  @db.VarChar(100)
+  state           String?  @db.VarChar(100)
+  pincode         String?  @db.VarChar(10)
+  dateOfBirth     DateTime? @db.Date
+  gender          String?  @db.VarChar(10)
+  loyaltyPoints   Int      @default(0)
+  totalPurchases  Decimal? @default(0) @db.Decimal(12, 2)
+  totalBills      Int      @default(0)
+  creditBalance   Decimal? @default(0) @db.Decimal(12, 2)
+  creditLimit     Decimal? @default(0) @db.Decimal(12, 2)
+  isCreditAllowed Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  store         Store?        @relation(fields: [storeId], references: [id])
+  salesBills    SalesBill[]
+  prescriptions Prescription[]
+
+  @@map("customers")
+}
+
+model Doctor {
+  id              String   @id @default(uuid())
+  name            String   @db.VarChar(255)
+  speciality      String?  @db.VarChar(255)
+  clinicHospital  String?  @db.VarChar(255)
+  registrationNo  String?  @db.VarChar(100)
+  mobile          String?  @db.VarChar(20)
+  email           String?  @db.VarChar(255)
+  address         String?  @db.Text
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  prescriptions Prescription[]
+
+  @@map("doctors")
+}
+
+model Prescription {
+  id                String    @id @default(uuid())
+  billId            String?
+  customerId        String?
+  doctorId          String?
+  prescriptionDate  DateTime  @default(now()) @db.Date
+  imageUrl          String?   @db.Text
+  imageThumbnailUrl String?   @db.Text
+  notes             String?   @db.Text
+  aiOcrText         String?   @db.Text
+  aiMedicines       Json?
+  aiVerifiedAt      DateTime? @db.Timestamptz()
+  aiVerifiedBy      String?
+  status            String    @default("pending") @db.VarChar(50)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  customer  Customer?  @relation(fields: [customerId], references: [id])
+  doctor    Doctor?    @relation(fields: [doctorId], references: [id])
+  verifiedBy User?     @relation("VerifiedBy", fields: [aiVerifiedBy], references: [id])
+  salesBill SalesBill? @relation("PrescriptionToBill", fields: [billId], references: [id])
+  @@unique([billId])
+
+  @@map("prescriptions")
+}
+
+model SalesBill {
+  id              String    @id @default(uuid())
+  storeId         String
+  customerId      String?
+  prescriptionId  String?
+  billNo          String    @db.VarChar(50)
+  billDate        DateTime  @default(now()) @db.Date
+  billTime        String    @default("00:00:00")
+  subtotal        Decimal   @default(0) @db.Decimal(12, 2)
+  discountPercent Decimal   @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal   @default(0) @db.Decimal(12, 2)
+  taxableAmount   Decimal   @default(0) @db.Decimal(12, 2)
+  gstAmount       Decimal   @default(0) @db.Decimal(12, 2)
+  cgstAmount      Decimal   @default(0) @db.Decimal(12, 2)
+  sgstAmount      Decimal   @default(0) @db.Decimal(12, 2)
+  igstAmount      Decimal   @default(0) @db.Decimal(12, 2)
+  roundOff        Decimal   @default(0) @db.Decimal(5, 2)
+  totalAmount     Decimal   @default(0) @db.Decimal(12, 2)
+  paidAmount      Decimal   @default(0) @db.Decimal(12, 2)
+  balanceAmount   Decimal   @default(0) @db.Decimal(12, 2)
+  paymentMode     String    @default("cash") @db.VarChar(50)
+  paymentStatus   String    @default("pending") @db.VarChar(50)
+  billStatus      String    @default("active") @db.VarChar(50)
+  isCreditSale    Boolean   @default(false)
+  isPrinted       Boolean   @default(false)
+  printCount      Int       @default(0)
+  notes           String?   @db.Text
+  cancelledAt     DateTime? @db.Timestamptz()
+  cancelledBy     String?
+  cancelReason    String?   @db.Text
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  store         Store        @relation(fields: [storeId], references: [id])
+  customer      Customer?    @relation(fields: [customerId], references: [id])
+  prescription  Prescription? @relation("PrescriptionToBill")
+  cancelledByUser User?      @relation("CancelledBy", fields: [cancelledBy], references: [id])
+  createdByUser  User        @relation("CreatedBy", fields: [createdBy], references: [id])
+  salesItems    SalesItem[]
+  payments      Payment[]
+  customerReturns CustomerReturn[]
+
+  @@unique([storeId, billNo])
+  @@map("sales_bills")
+}
+
+model SalesItem {
+  id              String   @id @default(uuid())
+  billId          String
+  medicineId      String
+  batchId         String?
+  batchNo         String?  @db.VarChar(100)
+  expiryDate      DateTime? @db.Date
+  itemNo          Int
+  medicineName    String   @db.VarChar(255)
+  genericName     String?  @db.VarChar(255)
+  strength        String?  @db.VarChar(50)
+  form            String?  @db.VarChar(50)
+  hsnCode         String?  @db.VarChar(10)
+  quantity        Int
+  unitType        String?  @db.VarChar(50)
+  mrp             Decimal? @db.Decimal(12, 2)
+  unitPrice       Decimal  @db.Decimal(12, 2)
+  discountPercent Decimal  @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  taxableAmount   Decimal  @default(0) @db.Decimal(12, 2)
+  gstPercent      Decimal  @default(0) @db.Decimal(5, 2)
+  gstAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  cgstAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  sgstAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  igstAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  purchaseCost    Decimal? @db.Decimal(12, 2)
+  isReturned      Boolean  @default(false)
+  returnedQuantity Int     @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bill      SalesBill  @relation(fields: [billId], references: [id])
+  medicine  Medicine   @relation(fields: [medicineId], references: [id])
+  batch     Batch?     @relation(fields: [batchId], references: [id])
+  returnItems CustomerReturnItem[]
+
+  @@map("sales_items")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  billId        String
+  paymentNo     String   @db.VarChar(50)
+  paymentDate   DateTime @default(now()) @db.Timestamptz()
+  paymentMode   String   @db.VarChar(50)
+  amount        Decimal  @db.Decimal(12, 2)
+  referenceNo   String?  @db.VarChar(100)
+  bankName      String?  @db.VarChar(255)
+  cardType      String?  @db.VarChar(50)
+  cardLastFour  String?  @db.VarChar(4)
+  upiId         String?  @db.VarChar(255)
+  isVerified    Boolean  @default(true)
+  notes         String?  @db.Text
+  createdBy     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  bill      SalesBill @relation(fields: [billId], references: [id])
+  createdByUser User   @relation("PaymentCreatedBy", fields: [createdBy], references: [id])
+
+  @@map("payments")
+}
+
+model PurchaseOrder {
+  id               String    @id @default(uuid())
+  storeId          String
+  supplierId       String
+  poNo             String    @db.VarChar(50)
+  poDate           DateTime  @default(now()) @db.Date
+  expectedDelivery DateTime? @db.Date
+  status           String    @default("draft") @db.VarChar(50)
+  subtotal         Decimal   @default(0) @db.Decimal(12, 2)
+  discountAmount   Decimal   @default(0) @db.Decimal(12, 2)
+  taxAmount        Decimal   @default(0) @db.Decimal(12, 2)
+  totalAmount      Decimal   @default(0) @db.Decimal(12, 2)
+  notes            String?   @db.Text
+  approvedBy       String?
+  approvedAt       DateTime? @db.Timestamptz()
+  createdBy        String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  store      Store              @relation(fields: [storeId], references: [id])
+  supplier   Supplier           @relation(fields: [supplierId], references: [id])
+  approvedByUser User?          @relation("ApprovedBy", fields: [approvedBy], references: [id])
+  createdByUser User            @relation("CreatedBy", fields: [createdBy], references: [id])
+  items      PurchaseOrderItem[]
+  grns       GoodsReceiptNote[]
+  invoices   PurchaseInvoice[]
+
+  @@unique([storeId, poNo])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String   @id @default(uuid())
+  poId             String
+  medicineId       String
+  itemNo           Int
+  quantityOrdered  Int
+  quantityReceived Int      @default(0)
+  unitPrice        Decimal  @db.Decimal(12, 2)
+  mrp              Decimal? @db.Decimal(12, 2)
+  discountPercent  Decimal  @default(0) @db.Decimal(5, 2)
+  discountAmount   Decimal  @default(0) @db.Decimal(12, 2)
+  gstPercent       Decimal  @default(0) @db.Decimal(5, 2)
+  gstAmount        Decimal  @default(0) @db.Decimal(12, 2)
+  totalAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  po        PurchaseOrder @relation(fields: [poId], references: [id])
+  medicine  Medicine      @relation(fields: [medicineId], references: [id])
+  grnItems  GoodsReceiptItem[]
+
+  @@map("purchase_order_items")
+}
+
+model GoodsReceiptNote {
+  id           String   @id @default(uuid())
+  storeId      String
+  poId         String?
+  grnNo        String   @db.VarChar(50)
+  grnDate      DateTime @default(now()) @db.Date
+  invoiceNo    String?  @db.VarChar(100)
+  invoiceDate  DateTime? @db.Date
+  supplierId   String
+  status       String   @default("pending") @db.VarChar(50)
+  totalQuantity Int     @default(0)
+  totalAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  notes        String?  @db.Text
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  store      Store              @relation(fields: [storeId], references: [id])
+  po         PurchaseOrder?     @relation(fields: [poId], references: [id])
+  supplier   Supplier           @relation(fields: [supplierId], references: [id])
+  createdByUser User            @relation("GRNCreatedBy", fields: [createdBy], references: [id])
+  items      GoodsReceiptItem[]
+  invoices   PurchaseInvoice[]
+
+  @@unique([storeId, grnNo])
+  @@map("goods_receipt_notes")
+}
+
+model GoodsReceiptItem {
+  id              String   @id @default(uuid())
+  grnId           String
+  poItemId        String?
+  medicineId      String
+  batchNo         String   @db.VarChar(100)
+  expiryDate      DateTime @db.Date
+  manufactureDate DateTime? @db.Date
+  mrp             Decimal  @db.Decimal(12, 2)
+  unitPrice       Decimal  @db.Decimal(12, 2)
+  quantity        Int
+  freeQuantity    Int      @default(0)
+  discountPercent Decimal  @default(0) @db.Decimal(5, 2)
+  discountAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  gstPercent      Decimal  @default(0) @db.Decimal(5, 2)
+  gstAmount       Decimal  @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  sellingPrice    Decimal? @db.Decimal(12, 2)
+  rackId          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  grn       GoodsReceiptNote  @relation(fields: [grnId], references: [id])
+  poItem    PurchaseOrderItem? @relation(fields: [poItemId], references: [id])
+  medicine  Medicine           @relation(fields: [medicineId], references: [id])
+  rack      Rack?              @relation(fields: [rackId], references: [id])
+
+  @@map("goods_receipt_items")
+}
+
+model PurchaseInvoice {
+  id             String   @id @default(uuid())
+  storeId        String
+  grnId          String?
+  poId           String?
+  supplierId     String
+  invoiceNo      String   @db.VarChar(100)
+  invoiceDate    DateTime @db.Date
+  dueDate        DateTime? @db.Date
+  subtotal       Decimal  @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal  @default(0) @db.Decimal(12, 2)
+  taxableAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  gstAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  cgstAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  sgstAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  igstAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  totalAmount    Decimal  @default(0) @db.Decimal(12, 2)
+  paidAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  balanceAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  paymentStatus  String   @default("unpaid") @db.VarChar(50)
+  status         String   @default("pending") @db.VarChar(50)
+  notes          String?  @db.Text
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  store      Store              @relation(fields: [storeId], references: [id])
+  grn        GoodsReceiptNote?  @relation(fields: [grnId], references: [id])
+  po         PurchaseOrder?     @relation(fields: [poId], references: [id])
+  supplier   Supplier           @relation(fields: [supplierId], references: [id])
+  createdByUser User            @relation("InvoiceCreatedBy", fields: [createdBy], references: [id])
+  payments   PurchasePayment[]
+  supplierReturns SupplierReturn[]
+
+  @@unique([storeId, invoiceNo, supplierId])
+  @@map("purchase_invoices")
+}
+
+model PurchasePayment {
+  id                String   @id @default(uuid())
+  purchaseInvoiceId String
+  paymentNo         String   @db.VarChar(50)
+  paymentDate       DateTime @default(now()) @db.Timestamptz()
+  paymentMode       String   @db.VarChar(50)
+  amount            Decimal  @db.Decimal(12, 2)
+  referenceNo       String?  @db.VarChar(100)
+  bankName          String?  @db.VarChar(255)
+  chequeNo          String?  @db.VarChar(50)
+  chequeDate        DateTime? @db.Date
+  notes             String?  @db.Text
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  invoice PurchaseInvoice @relation(fields: [purchaseInvoiceId], references: [id])
+  createdByUser User      @relation("PaymentCreatedBy", fields: [createdBy], references: [id])
+
+  @@map("purchase_payments")
+}
+
+model CustomerReturn {
+  id          String   @id @default(uuid())
+  storeId     String
+  billId      String
+  returnNo    String   @db.VarChar(50)
+  returnDate  DateTime @default(now()) @db.Date
+  reason      String   @db.VarChar(255)
+  status      String   @default("pending") @db.VarChar(50)
+  refundAmount Decimal @default(0) @db.Decimal(12, 2)
+  refundMode  String?  @db.VarChar(50)
+  notes       String?  @db.Text
+  approvedBy  String?
+  approvedAt  DateTime? @db.Timestamptz()
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  store      Store                @relation(fields: [storeId], references: [id])
+  bill       SalesBill            @relation(fields: [billId], references: [id])
+  createdByUser User              @relation("ReturnCreatedBy", fields: [createdBy], references: [id])
+  items      CustomerReturnItem[]
+
+  @@unique([storeId, returnNo])
+  @@map("customer_returns")
+}
+
+model CustomerReturnItem {
+  id          String   @id @default(uuid())
+  returnId    String
+  salesItemId String
+  medicineId  String
+  batchId     String?
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  totalAmount Decimal  @db.Decimal(12, 2)
+  reason      String?  @db.VarChar(255)
+  condition   String   @default("good") @db.VarChar(50)
+  createdAt   DateTime @default(now())
+
+  returnItem CustomerReturn @relation(fields: [returnId], references: [id])
+  salesItem  SalesItem      @relation(fields: [salesItemId], references: [id])
+  medicine   Medicine       @relation(fields: [medicineId], references: [id])
+  batch      Batch?         @relation(fields: [batchId], references: [id])
+
+  @@map("customer_return_items")
+}
+
+model SupplierReturn {
+  id                String   @id @default(uuid())
+  storeId           String
+  supplierId        String
+  purchaseInvoiceId String?
+  returnNo          String   @db.VarChar(50)
+  returnDate        DateTime @default(now()) @db.Date
+  reason            String   @db.VarChar(255)
+  status            String   @default("pending") @db.VarChar(50)
+  creditNoteNo      String?  @db.VarChar(100)
+  creditAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  notes             String?  @db.Text
+  approvedBy        String?
+  approvedAt        DateTime? @db.Timestamptz()
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  store      Store                @relation(fields: [storeId], references: [id])
+  supplier   Supplier             @relation(fields: [supplierId], references: [id])
+  invoice    PurchaseInvoice?     @relation(fields: [purchaseInvoiceId], references: [id])
+  createdByUser User              @relation("SupplierReturnCreatedBy", fields: [createdBy], references: [id])
+  items      SupplierReturnItem[]
+
+  @@unique([storeId, returnNo])
+  @@map("supplier_returns")
+}
+
+model SupplierReturnItem {
+  id         String   @id @default(uuid())
+  returnId   String
+  medicineId String
+  batchId    String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(12, 2)
+  totalAmount Decimal @db.Decimal(12, 2)
+  reason     String?  @db.VarChar(255)
+  createdAt  DateTime @default(now())
+
+  returnItem SupplierReturn @relation(fields: [returnId], references: [id])
+  medicine   Medicine       @relation(fields: [medicineId], references: [id])
+  batch      Batch          @relation(fields: [batchId], references: [id])
+
+  @@map("supplier_return_items")
+}
+
+model StockTransfer {
+  id           String   @id @default(uuid())
+  transferNo   String   @db.VarChar(50)
+  fromStoreId  String
+  toStoreId    String
+  transferDate DateTime @default(now()) @db.Date
+  status       String   @default("draft") @db.VarChar(50)
+  totalItems   Int      @default(0)
+  notes        String?  @db.Text
+  approvedBy   String?
+  approvedAt   DateTime? @db.Timestamptz()
+  receivedBy   String?
+  receivedAt   DateTime? @db.Timestamptz()
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  fromStore  Store  @relation("FromStore", fields: [fromStoreId], references: [id])
+  toStore    Store  @relation("ToStore", fields: [toStoreId], references: [id])
+  approvedByUser User? @relation("TransferApprovedBy", fields: [approvedBy], references: [id])
+  receivedByUser User? @relation("TransferReceivedBy", fields: [receivedBy], references: [id])
+  createdByUser User   @relation("TransferCreatedBy", fields: [createdBy], references: [id])
+  items      StockTransferItem[]
+
+  @@unique([fromStoreId, transferNo])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id         String   @id @default(uuid())
+  transferId String
+  medicineId String
+  batchId    String
+  quantity   Int
+  unitCost   Decimal? @db.Decimal(12, 2)
+  createdAt  DateTime @default(now())
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id])
+  medicine Medicine      @relation(fields: [medicineId], references: [id])
+  batch    Batch         @relation(fields: [batchId], references: [id])
+
+  @@map("stock_transfer_items")
+}
+
+model StockAdjustment {
+  id             String   @id @default(uuid())
+  storeId        String
+  adjustmentNo   String   @db.VarChar(50)
+  adjustmentDate DateTime @default(now()) @db.Date
+  type           String   @db.VarChar(50)
+  reason         String   @db.VarChar(255)
+  status         String   @default("pending") @db.VarChar(50)
+  notes          String?  @db.Text
+  approvedBy     String?
+  approvedAt     DateTime? @db.Timestamptz()
+  createdBy      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  store      Store                  @relation(fields: [storeId], references: [id])
+  approvedByUser User?              @relation("AdjustmentApprovedBy", fields: [approvedBy], references: [id])
+  createdByUser User                @relation("AdjustmentCreatedBy", fields: [createdBy], references: [id])
+  items      StockAdjustmentItem[]
+
+  @@unique([storeId, adjustmentNo])
+  @@map("stock_adjustments")
+}
+
+model StockAdjustmentItem {
+  id          String   @id @default(uuid())
+  adjustmentId String
+  medicineId  String
+  batchId     String
+  quantity    Int
+  unitCost    Decimal? @db.Decimal(12, 2)
+  reason      String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+
+  adjustment StockAdjustment @relation(fields: [adjustmentId], references: [id])
+  medicine   Medicine        @relation(fields: [medicineId], references: [id])
+  batch      Batch           @relation(fields: [batchId], references: [id])
+
+  @@map("stock_adjustment_items")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  storeId     String?
+  userId      String?
+  action      String   @db.VarChar(100)
+  entityType  String   @db.VarChar(100)
+  entityId    String?
+  description String?  @db.Text
+  beforeValues Json?
+  afterValues  Json?
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model BarcodeLabel {
+  id            String   @id @default(uuid())
+  storeId       String
+  medicineId    String
+  batchId       String?
+  labelType     String   @db.VarChar(50)
+  barcodeData   String   @db.VarChar(255)
+  barcodeFormat String   @default("CODE128") @db.VarChar(50)
+  labelContent  Json?
+  printCount    Int      @default(0)
+  lastPrintedAt DateTime? @db.Timestamptz()
+  imageUrl      String?  @db.Text
+  createdBy     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
+
+  store    Store    @relation(fields: [storeId], references: [id])
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+  batch    Batch?   @relation(fields: [batchId], references: [id])
+  createdByUser User @relation("LabelCreatedBy", fields: [createdBy], references: [id])
+
+  @@map("barcode_labels")
+}
+
+model PurchaseSuggestion {
+  id                String   @id @default(uuid())
+  storeId           String
+  medicineId        String
+  supplierId        String?
+  suggestionDate    DateTime @default(now()) @db.Date
+  currentStock      Int
+  averageDailySale  Decimal  @default(0) @db.Decimal(10, 2)
+  leadTimeDays      Int      @default(0)
+  safetyStock       Int      @default(0)
+  reorderLevel      Int      @default(0)
+  suggestedQuantity Int
+  priority          String   @default("medium") @db.VarChar(20)
+  status            String   @default("pending") @db.VarChar(50)
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  store    Store    @relation(fields: [storeId], references: [id])
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  @@map("purchase_suggestions")
+}
+
+model DailySummary {
+  id              String   @id @default(uuid())
+  storeId         String
+  summaryDate     DateTime @db.Date
+  totalSales      Decimal  @default(0) @db.Decimal(12, 2)
+  totalPurchases  Decimal  @default(0) @db.Decimal(12, 2)
+  totalProfit     Decimal  @default(0) @db.Decimal(12, 2)
+  totalBills      Int      @default(0)
+  totalItemsSold  Int      @default(0)
+  totalDiscount   Decimal  @default(0) @db.Decimal(12, 2)
+  totalTax        Decimal  @default(0) @db.Decimal(12, 2)
+  cashSales       Decimal  @default(0) @db.Decimal(12, 2)
+  cardSales       Decimal  @default(0) @db.Decimal(12, 2)
+  upiSales        Decimal  @default(0) @db.Decimal(12, 2)
+  creditSales     Decimal  @default(0) @db.Decimal(12, 2)
+  otherSales      Decimal  @default(0) @db.Decimal(12, 2)
+  totalExpenses   Decimal  @default(0) @db.Decimal(12, 2)
+  netProfit       Decimal  @default(0) @db.Decimal(12, 2)
+  openingCash     Decimal  @default(0) @db.Decimal(12, 2)
+  closingCash     Decimal  @default(0) @db.Decimal(12, 2)
+  cashDifference  Decimal  @default(0) @db.Decimal(12, 2)
+  notes           String?  @db.Text
+
+  store Store @relation(fields: [storeId], references: [id])
+
+  @@unique([storeId, summaryDate])
+  @@map("daily_summaries")
+}
+
+model UserSession {
+  id            String   @id @default(uuid())
+  storeId       String?
+  userId        String
+  token         String   @unique @db.Text
+  refreshToken  String?  @db.Text
+  ipAddress     String?  @db.VarChar(45)
+  userAgent     String?  @db.Text
+  isActive      Boolean  @default(true)
+  lastActivity  DateTime? @db.Timestamptz()
+  expiresAt     DateTime @db.Timestamptz()
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User   @relation(fields: [userId], references: [id])
+
+  @@map("user_sessions")
+}
+
+model NotificationLog {
+  id        String   @id @default(uuid())
+  storeId   String?
+  userId    String?
+  type      String   @db.VarChar(50)
+  title     String   @db.VarChar(255)
+  message   String?  @db.Text
+  data      Json?
+  isRead    Boolean  @default(false)
+  readAt    DateTime? @db.Timestamptz()
+  createdAt DateTime @default(now())
+
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@map("notification_logs")
+}

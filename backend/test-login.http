@@ -1,0 +1,8 @@
+### Test Login
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@pharmacyos.com",
+  "password": "admin123"
+}
