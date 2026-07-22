@@ -10,7 +10,8 @@
         "includeFiles": [
           "backend/dist/**",
           "backend/node_modules/**",
-          "backend/prisma/**"
+          "backend/prisma/**",
+          "node_modules/**"
         ]
       }
     },
