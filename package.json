@@ -6,6 +6,7 @@
     "backend"
   ],
   "scripts": {
+    "postinstall": "node node_modules/prisma/build/index.js generate --schema=backend/prisma/schema.prisma",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run start:dev --workspace=backend",
