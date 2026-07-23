@@ -199,7 +199,7 @@ export default function DashboardPage() {
         </SectionCard>
 
         {/* AI Predictions */}
-        <SectionCard className="bg-[#1A2B4C] p-6 text-white relative overflow-hidden">
+        <div className="rounded-2xl border border-indigo-900 bg-[#1A2B4C] p-6 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/0 blur-2xl"></div>
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="h-4 w-4 text-indigo-400" />
@@ -220,7 +220,7 @@ export default function DashboardPage() {
               <p className="mt-1 text-sm text-white">Anticipating 25% increase in <b>Cough Syrups</b> this weekend due to weather.</p>
             </div>
           </div>
-        </SectionCard>
+        </div>
       </div>
     </div>
   </div>
