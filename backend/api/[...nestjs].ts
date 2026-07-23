@@ -5,6 +5,7 @@ async function bootstrap() {
   const { NestFactory } = await import('@nestjs/core');
   const { ExpressAdapter } = await import('@nestjs/platform-express');
   const cookieParser = (await import('cookie-parser')).default || await import('cookie-parser');
+  // @ts-ignore
   const { AppModule } = await import('../dist/src/app.module');
 
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
