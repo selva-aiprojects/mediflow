@@ -1,16 +1,15 @@
-import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import { AppModule } from '../dist/src/app.module';
-
-const app = express();
+let app: any = null;
 let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
+  const { NestFactory } = await import('@nestjs/core');
+  const { ExpressAdapter } = await import('@nestjs/platform-express');
+  const cookieParser = (await import('cookie-parser')).default || await import('cookie-parser');
+  const { AppModule } = await import('../dist/src/app.module');
+
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
 
-  app.use((req, res, next) => {
+  app.use((req: any, res: any, next: any) => {
     res.setHeader('X-Vercel-Api-Reached', 'true');
     res.setHeader('X-Vercel-Req-Url', req.url);
     if (req.url === '/api/test-vercel' || req.url === '/test-vercel') {
@@ -19,9 +18,7 @@ async function bootstrap() {
     next();
   });
 
-  // Vercel strips the /api mount path natively.
-  // We remove the global prefix and defensively ensure req.url starts from the controller root.
-  app.use((req, _res, next) => {
+  app.use((req: any, _res: any, next: any) => {
     if (req.url === '/api') {
       req.url = '/';
     } else if (req.url.startsWith('/api/')) {
@@ -31,34 +28,23 @@ async function bootstrap() {
   });
 
   nestApp.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
-      const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null;
-      
-      if (
-        origin === 'http://localhost:3000' || 
-        origin === vercelUrl ||
-        origin.endsWith('.vercel.app') ||
-        allowedOrigins.includes(origin)
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
   });
 
+  // @ts-ignore
   nestApp.use(cookieParser());
 
   await nestApp.init();
 }
 
-export default async function handler(req: express.Request, res: express.Response) {
+export default async function handler(req: any, res: any) {
   try {
+    if (!app) {
+      const expressModule = await import('express');
+      app = (expressModule.default || expressModule)();
+    }
+    
     if (!bootstrapPromise) {
       bootstrapPromise = bootstrap();
     }
