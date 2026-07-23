@@ -1,13 +1,15 @@
+import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
+import express from 'express';
+
+// @ts-ignore
+import { AppModule } from '../dist/src/app.module';
+
 let app: any = null;
 let bootstrapPromise: Promise<void> | null = null;
 
 async function bootstrap() {
-  const { NestFactory } = await import('@nestjs/core');
-  const { ExpressAdapter } = await import('@nestjs/platform-express');
-  const cookieParser = (await import('cookie-parser')).default || await import('cookie-parser');
-  // @ts-ignore
-  const { AppModule } = await import('../dist/src/app.module');
-
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
 
   app.use((req: any, res: any, next: any) => {
@@ -42,8 +44,7 @@ async function bootstrap() {
 export default async function handler(req: any, res: any) {
   try {
     if (!app) {
-      const expressModule = await import('express');
-      app = (expressModule.default || expressModule)();
+      app = express();
     }
     
     if (!bootstrapPromise) {
