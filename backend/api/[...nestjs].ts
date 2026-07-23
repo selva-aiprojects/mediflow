@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 
 // @ts-ignore
-import { AppModule } from '../dist/src/app.module';
+import { AppModule } from '../dist/src/app.module.js';
 
 let app: any = null;
 let bootstrapPromise: Promise<void> | null = null;
