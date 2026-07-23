@@ -22,11 +22,7 @@ async function bootstrap() {
   });
 
   app.use((req: any, _res: any, next: any) => {
-    if (req.url === '/api') {
-      req.url = '/';
-    } else if (req.url.startsWith('/api/')) {
-      req.url = req.url.slice('/api'.length);
-    }
+    // We used to strip /api here, but NestJS expects it because of app.setGlobalPrefix('api')
     next();
   });
 
