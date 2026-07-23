@@ -21,10 +21,8 @@ async function bootstrap() {
     next();
   });
 
-  app.use((req: any, _res: any, next: any) => {
-    // We used to strip /api here, but NestJS expects it because of app.setGlobalPrefix('api')
-    next();
-  });
+  // Set the global prefix so the NestJS router natively expects /api routes
+  nestApp.setGlobalPrefix('api');
 
   nestApp.enableCors({
     origin: (origin, callback) => callback(null, true),
