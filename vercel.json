@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "name": "medflow",
+  "installCommand": "if [ ! -f vercel.json ]; then cd ../; fi && npm ci --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
+  "builds": [
+    {
+      "src": "backend/api/[...nestjs].ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/dist/**",
+          "backend/node_modules/**",
+          "backend/prisma/**",
+          "node_modules/**"
+        ]
+      }
+    },
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static",
+      "config": {
+        "outputDirectory": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/api/[...nestjs]"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
