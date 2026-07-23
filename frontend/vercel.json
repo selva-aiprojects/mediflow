@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/**/*": {
+      "includeFiles": "../backend/dist/**,../backend/node_modules/**,../backend/prisma/**"
+    }
+  }
+}
