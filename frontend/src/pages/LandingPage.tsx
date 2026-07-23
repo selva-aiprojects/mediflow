@@ -13,8 +13,8 @@ export default function LandingPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-6 lg:px-12">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-[0_0_20px_rgba(51,204,153,0.3)]">
-            <Activity className="h-5 w-5" />
+          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-white shadow-[0_0_20px_rgba(51,204,153,0.3)]">
+            <img src="/brand/mediflow-mark.png" alt="MediFlow" className="h-full w-full object-cover" />
           </div>
           <div className="flex flex-col">
             <p className="text-xl font-bold tracking-tight text-white leading-tight">MediFlow</p>

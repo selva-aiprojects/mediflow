@@ -37,7 +37,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(0,123,255,.24),transparent_34%),radial-gradient(circle_at_82%_76%,rgba(51,204,153,.22),transparent_32%)]" />
       <div className="relative">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-7 w-7" /></div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white shadow-lg"><img src="/brand/mediflow-mark.png" alt="MediFlow" className="h-full w-full object-cover" /></div>
           <div className="flex flex-col">
             <p className="text-3xl font-bold tracking-tight text-white leading-tight">MediFlow</p>
             <p className="text-[10px] font-semibold tracking-wider text-slate-400">BY CYBELINX</p>
@@ -66,7 +66,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[410px]">
         <div className="mb-10 flex justify-center">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-7 w-7" /></div>
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-white shadow-lg"><img src="/brand/mediflow-mark.png" alt="MediFlow" className="h-full w-full object-cover" /></div>
             <div className="flex flex-col">
               <p className="text-3xl font-bold tracking-tight text-[#1A2B4C] leading-tight">MediFlow</p>
               <p className="text-[10px] font-semibold tracking-wider text-slate-400">BY CYBELINX</p>
