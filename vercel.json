@@ -8,10 +8,8 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
-          "backend/dist/**",
-          "backend/node_modules/**",
-          "backend/prisma/**",
-          "node_modules/**"
+          "backend/node_modules/.prisma/client/*",
+          "node_modules/.prisma/client/*"
         ]
       }
     },
