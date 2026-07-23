@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/[...nestjs].ts": {
+      "includeFiles": "dist/**"
+    }
+  }
+}
