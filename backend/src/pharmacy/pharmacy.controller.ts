@@ -190,4 +190,24 @@ export class PharmacyController {
 
   @Patch('settings/:id')
   updateSettings(@Param('id') id: string, @Body() body: any) { return this.pharmacy.updateSettings(id, body); }
+
+  // ── Accounts ───────────────────────────────────────
+  @Get('accounts')
+  accounts(@Query() query: Record<string, string>) { return this.pharmacy.accounts(query); }
+
+  @Post('accounts')
+  createAccount(@Body() body: any) { return this.pharmacy.createAccount(body); }
+
+  @Patch('accounts/:id')
+  updateAccount(@Param('id') id: string, @Body() body: any) { return this.pharmacy.updateAccount(id, body); }
+
+  @Delete('accounts/:id')
+  deleteAccount(@Param('id') id: string) { return this.pharmacy.deleteAccount(id); }
+
+  // ── Transactions ───────────────────────────────────
+  @Get('transactions')
+  transactions(@Query() query: Record<string, string>) { return this.pharmacy.transactions(query); }
+
+  @Post('transactions')
+  createTransaction(@Body() body: any) { return this.pharmacy.createTransaction(body); }
 }

@@ -142,3 +142,15 @@ export const settingsApi = {
   getAll: () => api.get('/settings'),
   update: (id: string, data: any) => api.patch(`/settings/${id}`, data),
 }
+
+export const accountsApi = {
+  getAll: (params?: { storeId?: string }) => api.get('/accounts', { params }),
+  create: (data: any) => api.post('/accounts', data),
+  update: (id: string, data: any) => api.patch(`/accounts/${id}`, data),
+  delete: (id: string) => api.delete(`/accounts/${id}`),
+}
+
+export const transactionsApi = {
+  getAll: (params?: { storeId?: string; accountId?: string }) => api.get('/transactions', { params }),
+  create: (data: any) => api.post('/transactions', data),
+}

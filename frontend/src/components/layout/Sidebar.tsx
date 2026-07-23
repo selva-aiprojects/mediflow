@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Pill, ShoppingCart, Package, Users, Store, BarChart3, LogOut, ChevronRight, ClipboardList, Truck, RotateCcw, FileText, QrCode, Bell, PanelLeftClose, Settings, Stethoscope, Building2 } from 'lucide-react'
+import { LayoutDashboard, Pill, ShoppingCart, Package, Users, Store, BarChart3, LogOut, ChevronRight, ClipboardList, Truck, RotateCcw, FileText, QrCode, Bell, PanelLeftClose, Settings, Stethoscope, Building2, Wallet } from 'lucide-react'
 
 const primaryItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/' },
@@ -20,6 +20,7 @@ const operationsItems = [
   { icon: QrCode, label: 'Barcode labels', path: '/barcodes' },
 ]
 const managementItems = [
+  { icon: Wallet, label: 'Accounts', path: '/accounts' },
   { icon: Users, label: 'Team members', path: '/users' },
   { icon: Store, label: 'Stores', path: '/stores' },
   { icon: BarChart3, label: 'Reports', path: '/reports' },

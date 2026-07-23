@@ -811,4 +811,100 @@ export class PharmacyService {
   async updateSettings(id: string, data: any) {
     return { id, ...data, updatedAt: new Date() };
   }
+
+  // ── Accounts ───────────────────────────────────────
+  async accounts(query: Record<string, string>) {
+    const storeId = query.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
+    return clean(await this.prisma.account.findMany({
+      where: { storeId, deletedAt: null },
+      orderBy: { name: 'asc' },
+    }));
+  }
+
+  async createAccount(data: any) {
+    const storeId = data.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
+    return clean(await this.prisma.account.create({
+      data: {
+        storeId,
+        name: data.name,
+        type: data.type,
+        description: data.description,
+        balance: data.balance || 0,
+      }
+    }));
+  }
+
+  async updateAccount(id: string, data: any) {
+    return clean(await this.prisma.account.update({
+      where: { id },
+      data: {
+        name: data.name,
+        type: data.type,
+        description: data.description,
+        balance: data.balance,
+        isActive: data.isActive,
+      }
+    }));
+  }
+
+  async deleteAccount(id: string) {
+    return clean(await this.prisma.account.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    }));
+  }
+
+  // ── Transactions ───────────────────────────────────
+  async transactions(query: Record<string, string>) {
+    const storeId = query.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
+    return clean(await this.prisma.transaction.findMany({
+      where: {
+        storeId,
+        accountId: query.accountId || undefined,
+        deletedAt: null
+      },
+      include: {
+        account: { select: { name: true, type: true } },
+        createdByUser: { select: { firstName: true, lastName: true } }
+      },
+      orderBy: { date: 'desc' },
+    }));
+  }
+
+  async createTransaction(data: any) {
+    const storeId = data.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
+    
+    const transaction = await this.prisma.transaction.create({
+      data: {
+        storeId,
+        accountId: data.accountId,
+        type: data.type,
+        amount: data.amount,
+        date: data.date ? new Date(data.date) : new Date(),
+        reference: data.reference,
+        description: data.description,
+        createdBy: data.createdBy
+      },
+      include: {
+        account: { select: { name: true, type: true } },
+        createdByUser: { select: { firstName: true, lastName: true } }
+      }
+    });
+
+    const account = await this.prisma.account.findUnique({ where: { id: data.accountId } });
+    if (account) {
+      const amt = Number(data.amount);
+      const isIncrease = (account.type === 'asset' || account.type === 'expense') ? data.type === 'debit' : data.type === 'credit';
+      const balanceChange = isIncrease ? amt : -amt;
+
+      await this.prisma.account.update({
+        where: { id: account.id },
+        data: {
+          balance: { increment: balanceChange }
+        }
+      });
+    }
+
+    return clean(transaction);
+  }
 }

@@ -19,6 +19,7 @@ import InvoicesPage from '@/pages/InvoicesPage'
 import NotificationsPage from '@/pages/NotificationsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import ReportsPage from '@/pages/ReportsPage'
+import AccountsPage from '@/pages/AccountsPage'
 import ToastContainer from '@/components/ui/toast'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<DashboardPage />} />
+          <Route path="accounts" element={<AccountsPage />} />
           <Route path="users" element={<UsersPage />} />
           <Route path="sales" element={<SalesPage />} />
           <Route path="inventory" element={<InventoryPage />} />
