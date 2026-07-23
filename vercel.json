@@ -4,7 +4,7 @@
   "installCommand": "if [ ! -f vercel.json ]; then cd ../; fi && rm -f package-lock.json && npm install --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
   "builds": [
     {
-      "src": "api/index.ts",
+      "src": "api/[...nestjs].ts",
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
@@ -26,7 +26,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.ts"
+      "dest": "/api/[...nestjs]"
     },
     {
       "handle": "filesystem"
