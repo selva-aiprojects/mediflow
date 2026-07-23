@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Bell, ChevronDown, Package, Plus, ShoppingBag, Users, WalletCards, TrendingUp, TrendingDown, Clock, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, Bell, ChevronDown, Package, Plus, ShoppingBag, Users, WalletCards, TrendingUp, TrendingDown, Clock, RefreshCw, Sparkles } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { dashboardApi } from '@/lib/api'
 import { formatCurrency } from '@/lib/utils'
@@ -198,13 +198,27 @@ export default function DashboardPage() {
           </div>
         </SectionCard>
 
-        {/* CTA */}
-        <SectionCard className="bg-[#1A2B4C] p-6 text-white">
-          <h2 className="text-xl font-bold">Keep the counter moving.</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-200">Start a sale or create a purchase order right from your workspace.</p>
-          <div className="mt-6 grid gap-2">
-            <Link to="/sales" className="flex items-center justify-between rounded-xl bg-[#33CC99] px-4 py-3 text-sm font-bold text-[#1A2B4C]">Start new sale <ArrowUpRight className="h-4 w-4" /></Link>
-            <Link to="/purchase-orders" className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 text-sm font-semibold">Create purchase order <ArrowUpRight className="h-4 w-4" /></Link>
+        {/* AI Predictions */}
+        <SectionCard className="bg-[#1A2B4C] p-6 text-white relative overflow-hidden">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/0 blur-2xl"></div>
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles className="h-4 w-4 text-indigo-400" />
+            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">Cognivectra AI</h2>
+          </div>
+          <p className="mt-1 text-sm leading-6 text-slate-300">Predictive analytics & insights for your store.</p>
+          <div className="mt-6 space-y-4">
+            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-300">Sales Forecast</p>
+              <p className="mt-1 text-sm text-white">Expected revenue today: <b>₹1,45,000</b> <span className="text-emerald-400 font-medium text-xs ml-1">↑ 12%</span></p>
+            </div>
+            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-rose-300">Stockout Risk</p>
+              <p className="mt-1 text-sm text-white">High risk for <b>Paracetamol 500mg</b> by tomorrow evening.</p>
+            </div>
+            <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm border border-white/5">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-300">Demand Surge</p>
+              <p className="mt-1 text-sm text-white">Anticipating 25% increase in <b>Cough Syrups</b> this weekend due to weather.</p>
+            </div>
           </div>
         </SectionCard>
       </div>
