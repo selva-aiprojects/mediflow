@@ -10,16 +10,7 @@ let bootstrapPromise: Promise<void> | null = null;
 async function bootstrap() {
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
 
-  // Vercel may pass the rewritten request path with or without `/api`.
-  // Normalise it here so the Nest controllers consistently receive `/auth/*`.
-  app.use((req, _res, next) => {
-    if (req.url === '/api') {
-      req.url = '/';
-    } else if (req.url.startsWith('/api/')) {
-      req.url = req.url.slice('/api'.length);
-    }
-    next();
-  });
+  nestApp.setGlobalPrefix('api');
 
   nestApp.enableCors({
     origin: (origin, callback) => {
