@@ -43,7 +43,7 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; o
     <div className={cn('mb-8 flex items-center px-2', collapsed ? 'justify-center' : 'justify-between')}>
       <div className="flex items-center gap-3 overflow-hidden">
         <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg shadow-[#007BFF]/20"><Package className="h-6 w-6" /></div>
-        {!collapsed && <div><p className="text-base font-bold tracking-tight text-white">Cybelinx</p><p className="text-[10px] font-medium tracking-[.14em] text-[#33CC99]">PHARMACY OS</p></div>}
+        {!collapsed && <div className="flex flex-col"><p className="text-base font-bold tracking-tight text-white leading-tight">MediFlow</p><p className="text-[9px] font-semibold tracking-wider text-slate-400">BY CYBELINX</p></div>}
       </div>
       {!collapsed && <button onClick={onToggle} aria-label="Collapse navigation" className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-white"><PanelLeftClose className="h-4 w-4" /></button>}
     </div>

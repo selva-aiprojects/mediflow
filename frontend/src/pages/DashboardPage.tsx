@@ -203,7 +203,7 @@ export default function DashboardPage() {
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/0 blur-2xl"></div>
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="h-4 w-4 text-indigo-400" />
-            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">Cognivectra AI</h2>
+            <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">MediFlow AI</h2>
           </div>
           <p className="mt-1 text-sm leading-6 text-slate-300">Predictive analytics & insights for your store.</p>
           <div className="mt-6 space-y-4">

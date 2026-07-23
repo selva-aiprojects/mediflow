@@ -16,7 +16,10 @@ export default function LandingPage() {
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-[0_0_20px_rgba(51,204,153,0.3)]">
             <Activity className="h-5 w-5" />
           </div>
-          <p className="text-2xl font-bold tracking-tight text-white">Cybelinx</p>
+          <div className="flex flex-col">
+            <p className="text-xl font-bold tracking-tight text-white leading-tight">MediFlow</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">by Cybelinx</p>
+          </div>
         </div>
         <div className="flex items-center gap-6">
           <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Sign In</Link>
@@ -30,7 +33,7 @@ export default function LandingPage() {
         {/* Badge */}
         <div className="mb-8 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 backdrop-blur-sm">
           <Sparkles className="h-3.5 w-3.5 text-[#33CC99]" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">Introducing Cybelinx AI 2.0</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">Introducing MediFlow AI 2.0</span>
         </div>
 
         {/* Hero Text */}
@@ -38,7 +41,7 @@ export default function LandingPage() {
           The operating system for <span className="bg-gradient-to-r from-[#007BFF] to-[#33CC99] bg-clip-text text-transparent">modern pharmacies.</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-slate-400">
-          Supercharge your pharmacy operations with predictive AI, seamless POS, and automated inventory management. Cybelinx handles the complexity so you can focus on patient care.
+          Supercharge your pharmacy operations with predictive AI, seamless POS, and automated inventory management. MediFlow handles the complexity so you can focus on patient care.
         </p>
 
         {/* CTA */}
@@ -62,7 +65,7 @@ export default function LandingPage() {
                 <div className="h-3 w-3 rounded-full bg-amber-500/80" />
                 <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
               </div>
-              <div className="mx-auto flex h-6 w-1/3 items-center justify-center rounded-md bg-white/5 text-[10px] text-slate-500">cybelinx.app</div>
+              <div className="mx-auto flex h-6 w-1/3 items-center justify-center rounded-md bg-white/5 text-[10px] text-slate-500">mediflow.cybelinx.com</div>
             </div>
             {/* Image mock or grid */}
             <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 opacity-70 transition-opacity duration-700 group-hover:opacity-100">

@@ -36,8 +36,12 @@ export default function LoginPage() {
     <section className="relative hidden overflow-hidden bg-[#1A2B4C] p-12 lg:flex lg:flex-col lg:justify-between">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(0,123,255,.24),transparent_34%),radial-gradient(circle_at_82%_76%,rgba(51,204,153,.22),transparent_32%)]" />
       <div className="relative">
-        <div className="inline-flex rounded-[22px] bg-white p-3 shadow-2xl shadow-black/15">
-          <img src="/brand/mediflow-logo.png" alt="MediFlow pharmacy management system" className="h-24 w-auto object-contain" />
+        <div className="flex items-center gap-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-7 w-7" /></div>
+          <div className="flex flex-col">
+            <p className="text-3xl font-bold tracking-tight text-white leading-tight">MediFlow</p>
+            <p className="text-[10px] font-semibold tracking-wider text-slate-400">BY CYBELINX</p>
+          </div>
         </div>
       </div>
       <div className="relative max-w-xl">
@@ -60,9 +64,14 @@ export default function LoginPage() {
 
     <section className="flex items-center justify-center p-6 sm:p-10">
       <div className="w-full max-w-[410px]">
-        <div className="mb-10 flex justify-center lg:hidden items-center gap-2">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-6 w-6" /></div>
-          <p className="text-2xl font-bold tracking-tight text-[#1A2B4C]">Cybelinx</p>
+        <div className="mb-10 flex justify-center">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-7 w-7" /></div>
+            <div className="flex flex-col">
+              <p className="text-3xl font-bold tracking-tight text-[#1A2B4C] leading-tight">MediFlow</p>
+              <p className="text-[10px] font-semibold tracking-wider text-slate-400">BY CYBELINX</p>
+            </div>
+          </div>
         </div>
         <div>
           <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-[#eaf3ff] text-[#007BFF]"><LockKeyhole className="h-5 w-5" /></div>
