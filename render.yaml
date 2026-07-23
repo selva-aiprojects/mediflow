@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: mediflow-backend
+    env: node
+    buildCommand: "npm ci && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build --workspace=backend"
+    startCommand: "npm run start:prod --workspace=backend"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: "https://medflow-sys.vercel.app,https://mediflow-sys.vercel.app"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
