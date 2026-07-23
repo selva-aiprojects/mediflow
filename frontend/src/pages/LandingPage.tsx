@@ -67,16 +67,79 @@ export default function LandingPage() {
               </div>
               <div className="mx-auto flex h-6 w-1/3 items-center justify-center rounded-md bg-white/5 text-[10px] text-slate-500">mediflow.cybelinx.com</div>
             </div>
-            {/* Image mock or grid */}
-            <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 opacity-70 transition-opacity duration-700 group-hover:opacity-100">
-              <div className="col-span-2 space-y-6">
-                <div className="h-40 rounded-2xl border border-white/10 bg-white/5"></div>
-                <div className="h-64 rounded-2xl border border-white/10 bg-white/5"></div>
+            {/* Populated UI Mockup */}
+            <div className="flex h-[500px] w-full bg-[#0a0f1c]">
+              {/* Mini Sidebar */}
+              <div className="hidden w-48 flex-col border-r border-white/5 bg-[#121c2d]/50 p-4 sm:flex">
+                <div className="mb-6 flex items-center gap-2">
+                  <div className="h-6 w-6 rounded bg-gradient-to-br from-[#007BFF] to-[#33CC99]"></div>
+                  <div className="h-3 w-20 rounded bg-white/20"></div>
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-3 rounded-lg p-2 hover:bg-white/5">
+                      <div className="h-4 w-4 rounded bg-white/20"></div>
+                      <div className="h-2 w-16 rounded bg-white/10"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-6">
-                <div className="h-24 rounded-2xl border border-white/10 bg-white/5"></div>
-                <div className="h-40 rounded-2xl border border-white/10 bg-[#33CC99]/10 border-[#33CC99]/20"></div>
-                <div className="h-32 rounded-2xl border border-white/10 bg-white/5"></div>
+              
+              {/* Mini Main Content */}
+              <div className="flex-1 p-6 flex flex-col gap-6 opacity-80 transition-opacity duration-700 group-hover:opacity-100">
+                {/* Top Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex flex-col justify-center rounded-xl border border-white/5 bg-white/5 p-4">
+                    <p className="text-[10px] uppercase text-slate-400">Daily Revenue</p>
+                    <p className="text-xl font-bold text-white mt-1">₹1,45,200</p>
+                    <p className="text-[10px] text-[#33CC99] mt-1">+12.5% vs yesterday</p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-xl border border-white/5 bg-white/5 p-4">
+                    <p className="text-[10px] uppercase text-slate-400">Active Prescriptions</p>
+                    <p className="text-xl font-bold text-white mt-1">84</p>
+                    <p className="text-[10px] text-[#33CC99] mt-1">12 waiting</p>
+                  </div>
+                  <div className="flex flex-col justify-center rounded-xl border border-white/5 bg-white/5 p-4">
+                    <p className="text-[10px] uppercase text-slate-400">Inventory Alerts</p>
+                    <p className="text-xl font-bold text-white mt-1">3</p>
+                    <p className="text-[10px] text-rose-400 mt-1">Low stock items</p>
+                  </div>
+                </div>
+
+                {/* Main Area */}
+                <div className="flex flex-1 gap-4">
+                  {/* Chart area */}
+                  <div className="flex-1 rounded-xl border border-white/5 bg-white/5 p-4 flex flex-col">
+                    <p className="text-xs font-semibold text-white mb-4">Sales Trends</p>
+                    <div className="flex-1 flex items-end gap-2">
+                      {[40, 70, 45, 90, 65, 100, 80].map((h, i) => (
+                        <div key={i} className="flex-1 rounded-t-md bg-gradient-to-t from-[#007BFF]/80 to-[#33CC99]/80" style={{ height: `${h}%` }}></div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Right column */}
+                  <div className="w-1/3 flex flex-col gap-4">
+                    <div className="flex-1 rounded-xl border border-[#33CC99]/20 bg-[#33CC99]/5 p-4">
+                      <p className="text-xs font-semibold text-[#33CC99] mb-2">AI Insights</p>
+                      <div className="space-y-2 mt-4">
+                        <div className="h-2 w-full rounded bg-[#33CC99]/20"></div>
+                        <div className="h-2 w-4/5 rounded bg-[#33CC99]/20"></div>
+                        <div className="h-2 w-full rounded bg-[#33CC99]/20"></div>
+                      </div>
+                    </div>
+                    <div className="flex-1 rounded-xl border border-white/5 bg-white/5 p-4">
+                      <p className="text-xs font-semibold text-white mb-2">Recent Orders</p>
+                      <div className="space-y-3 mt-4">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex items-center justify-between">
+                            <div className="h-2 w-12 rounded bg-white/20"></div>
+                            <div className="h-2 w-8 rounded bg-white/10"></div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
