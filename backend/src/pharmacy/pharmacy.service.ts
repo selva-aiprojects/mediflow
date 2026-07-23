@@ -604,14 +604,16 @@ export class PharmacyService {
           data: { quantity: { decrement: item.quantity } },
         });
       }
-    }
-
-    // Ledger Integration
-    await this.postSystemTransaction(storeId, 'Sales Revenue', 'income', 'credit', Number(totalAmount), bill.billNo, 'Sales bill total', data.createdBy);
-    if (paidAmount > 0) {
-      const assetAccount = data.paymentMode === 'cash' ? 'Petty Cash' : 'HDFC Bank';
-      await this.postSystemTransaction(storeId, assetAccount, 'asset', 'debit', Number(paidAmount), bill.billNo, `Sales receipt (${data.paymentMode || 'cash'})`, data.createdBy);
-    }
+    // Single Entry Ledger Integration
+    await this.createTransaction({
+      storeId,
+      category: 'sales',
+      type: 'income',
+      amount: totalAmount,
+      reference: bill.billNo,
+      description: 'Sales bill total',
+      createdBy: data.createdBy
+    });
 
     return clean(bill);
   }
@@ -657,11 +659,16 @@ export class PharmacyService {
       include: { supplier: true },
     });
 
-    // Ledger Integration
-    await this.postSystemTransaction(storeId, 'Purchases', 'expense', 'debit', Number(data.totalAmount), data.invoiceNo, 'Purchase invoice', data.createdBy);
-    if (data.paidAmount > 0) {
-      await this.postSystemTransaction(storeId, 'HDFC Bank', 'asset', 'credit', Number(data.paidAmount), data.invoiceNo, 'Purchase payment', data.createdBy);
-    }
+    // Single Entry Ledger Integration
+    await this.createTransaction({
+      storeId,
+      category: 'purchases',
+      type: 'expense',
+      amount: data.totalAmount,
+      reference: data.invoiceNo,
+      description: 'Purchase invoice',
+      createdBy: data.createdBy
+    });
     
     return clean(inv);
   }
@@ -712,8 +719,16 @@ export class PharmacyService {
     });
 
     if (data.refundAmount > 0) {
-      await this.postSystemTransaction(storeId, 'Sales Returns', 'expense', 'debit', Number(data.refundAmount), ret.returnNo, 'Customer refund', data.createdBy);
-      await this.postSystemTransaction(storeId, 'Petty Cash', 'asset', 'credit', Number(data.refundAmount), ret.returnNo, 'Customer refund payout', data.createdBy);
+      // Single Entry Ledger Integration
+      await this.createTransaction({
+        storeId,
+        category: 'sales_returns',
+        type: 'expense',
+        amount: data.refundAmount,
+        reference: ret.returnNo,
+        description: 'Customer refund',
+        createdBy: data.createdBy
+      });
     }
     return clean(ret);
   }
@@ -745,8 +760,16 @@ export class PharmacyService {
     });
 
     if (data.creditAmount > 0) {
-      await this.postSystemTransaction(storeId, 'HDFC Bank', 'asset', 'debit', Number(data.creditAmount), ret.returnNo, 'Supplier credit note', data.createdBy);
-      await this.postSystemTransaction(storeId, 'Purchases', 'expense', 'credit', Number(data.creditAmount), ret.returnNo, 'Supplier return credit', data.createdBy);
+      // Single Entry Ledger Integration
+      await this.createTransaction({
+        storeId,
+        category: 'purchases_returns',
+        type: 'income',
+        amount: data.creditAmount,
+        reference: ret.returnNo,
+        description: 'Supplier return credit',
+        createdBy: data.createdBy
+      });
     }
     return clean(ret);
   }
@@ -840,59 +863,17 @@ export class PharmacyService {
     return { id, ...data, updatedAt: new Date() };
   }
 
-  // ── Accounts ───────────────────────────────────────
-  async accounts(query: Record<string, string>) {
-    const storeId = query.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
-    return clean(await this.prisma.account.findMany({
-      where: { storeId, deletedAt: null },
-      orderBy: { name: 'asc' },
-    }));
-  }
-
-  async createAccount(data: any) {
-    const storeId = data.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
-    return clean(await this.prisma.account.create({
-      data: {
-        storeId,
-        name: data.name,
-        type: data.type,
-        description: data.description,
-        balance: data.balance || 0,
-      }
-    }));
-  }
-
-  async updateAccount(id: string, data: any) {
-    return clean(await this.prisma.account.update({
-      where: { id },
-      data: {
-        name: data.name,
-        type: data.type,
-        description: data.description,
-        balance: data.balance,
-        isActive: data.isActive,
-      }
-    }));
-  }
-
-  async deleteAccount(id: string) {
-    return clean(await this.prisma.account.update({
-      where: { id },
-      data: { deletedAt: new Date() }
-    }));
-  }
-
   // ── Transactions ───────────────────────────────────
   async transactions(query: Record<string, string>) {
     const storeId = query.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
     return clean(await this.prisma.transaction.findMany({
       where: {
         storeId,
-        accountId: query.accountId || undefined,
+        category: query.category || undefined,
+        type: query.type || undefined,
         deletedAt: null
       },
       include: {
-        account: { select: { name: true, type: true } },
         createdByUser: { select: { firstName: true, lastName: true } }
       },
       orderBy: { date: 'desc' },
@@ -905,8 +886,8 @@ export class PharmacyService {
     const transaction = await this.prisma.transaction.create({
       data: {
         storeId,
-        accountId: data.accountId,
-        type: data.type,
+        category: data.category || 'other',
+        type: data.type, // 'income' or 'expense'
         amount: data.amount,
         date: data.date ? new Date(data.date) : new Date(),
         reference: data.reference,
@@ -914,68 +895,10 @@ export class PharmacyService {
         createdBy: data.createdBy
       },
       include: {
-        account: { select: { name: true, type: true } },
         createdByUser: { select: { firstName: true, lastName: true } }
       }
     });
 
-    const account = await this.prisma.account.findUnique({ where: { id: data.accountId } });
-    if (account) {
-      const amt = Number(data.amount);
-      const isIncrease = (account.type === 'asset' || account.type === 'expense') ? data.type === 'debit' : data.type === 'credit';
-      const balanceChange = isIncrease ? amt : -amt;
-
-      await this.prisma.account.update({
-        where: { id: account.id },
-        data: {
-          balance: { increment: balanceChange }
-        }
-      });
-    }
-
     return clean(transaction);
-  }
-
-  // Helper for automated ledger transactions
-  private async postSystemTransaction(
-    storeId: string,
-    accountName: string,
-    accountType: string,
-    transactionType: 'credit' | 'debit',
-    amount: number,
-    reference: string,
-    description: string,
-    createdBy: string
-  ) {
-    if (amount <= 0) return;
-    
-    // Find or create account
-    let account = await this.prisma.account.findFirst({
-      where: { storeId, name: accountName }
-    });
-    
-    if (!account) {
-      account = await this.prisma.account.create({
-        data: {
-          storeId,
-          name: accountName,
-          type: accountType,
-          description: `Auto-created ${accountType} account`,
-          balance: 0,
-          isActive: true
-        }
-      });
-    }
-
-    // Call the existing createTransaction
-    await this.createTransaction({
-      storeId,
-      accountId: account.id,
-      type: transactionType,
-      amount,
-      reference,
-      description,
-      createdBy
-    });
   }
 }

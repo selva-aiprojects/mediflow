@@ -397,6 +397,7 @@ export default function SalesPage() {
       form: it.form || '',
       schedule: '',
       hsnCode: it.hsnCode || '',
+      unitType: it.unitType || 'strip',
       batchId: it.batchId || '',
       batchNo: it.batchNo || 'N/A',
       expiryDate: it.expiryDate || '',

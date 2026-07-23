@@ -76,7 +76,7 @@ const docData = [
 async function main() {
   console.log('Seeding MediFlow Pharmacy database...\n');
   console.log('Cleaning existing data...');
-  await prisma.$executeRaw`TRUNCATE TABLE notification_logs, transactions, accounts, stock_adjustment_items, stock_adjustments, stock_transfer_items, stock_transfers, barcode_labels, daily_summaries, user_sessions, purchase_suggestions, audit_logs, purchase_payments, customer_return_items, customer_returns, supplier_return_items, supplier_returns, goods_receipt_items, goods_receipt_notes, purchase_invoices, purchase_order_items, purchase_orders, sales_items, payments, sales_bills, prescriptions, batches, medicine_suppliers, medicines, racks, categories, manufacturers, suppliers, doctors, customers, users, stores, tenants CASCADE`;
+  await prisma.$executeRaw`TRUNCATE TABLE notification_logs, transactions, stock_adjustment_items, stock_adjustments, stock_transfer_items, stock_transfers, barcode_labels, daily_summaries, user_sessions, purchase_suggestions, audit_logs, purchase_payments, customer_return_items, customer_returns, supplier_return_items, supplier_returns, goods_receipt_items, goods_receipt_notes, purchase_invoices, purchase_order_items, purchase_orders, sales_items, payments, sales_bills, prescriptions, batches, medicine_suppliers, medicines, racks, categories, manufacturers, suppliers, doctors, customers, users, stores, tenants CASCADE`;
 
   const tenant = await prisma.tenant.upsert({ where: { subdomain: 'default' }, update: {},
     create: { name: 'MediFlow Pharmacy', subdomain: 'default', schemaName: 'public', gstin: '27AAACT1234F1Z5', drugLicenseNo: 'MH-2024-001234', phone: '022-23456789', email: 'info@mediflowpharmacy.in', addressLine1: '123 Health Street', city: 'Mumbai', state: 'Maharashtra', pincode: '400001', isActive: true } });
@@ -246,22 +246,16 @@ async function main() {
 
   console.log('Notifications:', notifData.length);
 
-  // ── Accounts & Transactions Seed ──────────────────────────────────
-  const cashAcc = await prisma.account.create({ data: { storeId: store.id, name: 'Petty Cash', type: 'asset', description: 'Store cash drawer', balance: 50000, isActive: true } });
-  const bankAcc = await prisma.account.create({ data: { storeId: store.id, name: 'HDFC Bank', type: 'asset', description: 'Main business checking account', balance: 250000, isActive: true } });
-  const salesInc = await prisma.account.create({ data: { storeId: store.id, name: 'Sales Revenue', type: 'income', description: 'Income from sales', balance: 12500, isActive: true } });
-  const purExp = await prisma.account.create({ data: { storeId: store.id, name: 'Purchases', type: 'expense', description: 'Cost of goods', balance: 8000, isActive: true } });
-  
+  // ── Transactions Seed (Single Entry Cash Book) ─────────────────────
   const txs = [
-    { accountId: cashAcc.id, type: 'debit', amount: 15000, date: daysAgo(5), reference: 'DEP-001', description: 'Initial cash deposit', createdBy: admin.id },
-    { accountId: bankAcc.id, type: 'credit', amount: 15000, date: daysAgo(5), reference: 'DEP-001', description: 'Initial cash deposit withdrawal', createdBy: admin.id },
-    { accountId: salesInc.id, type: 'credit', amount: 5500, date: daysAgo(2), reference: 'INV-1002', description: 'Daily sales batch', createdBy: manager.id },
-    { accountId: cashAcc.id, type: 'debit', amount: 5500, date: daysAgo(2), reference: 'INV-1002', description: 'Daily sales batch receipt', createdBy: manager.id },
-    { accountId: purExp.id, type: 'debit', amount: 8000, date: daysAgo(1), reference: 'PO-2026-04', description: 'Inventory purchase payment', createdBy: admin.id },
-    { accountId: bankAcc.id, type: 'credit', amount: 8000, date: daysAgo(1), reference: 'PO-2026-04', description: 'Inventory purchase payment', createdBy: admin.id },
+    { category: 'sales', type: 'income', amount: 5500, date: daysAgo(2), reference: 'INV-1002', description: 'Daily sales batch', createdBy: manager.id },
+    { category: 'purchases', type: 'expense', amount: 8000, date: daysAgo(1), reference: 'PO-2026-04', description: 'Inventory purchase payment', createdBy: admin.id },
+    { category: 'utilities', type: 'expense', amount: 1500, date: daysAgo(3), reference: 'ELEC-MAY', description: 'Electricity bill', createdBy: admin.id },
+    { category: 'petty_cash', type: 'expense', amount: 200, date: daysAgo(1), reference: 'TEA', description: 'Tea and snacks', createdBy: cashier.id },
+    { category: 'other', type: 'income', amount: 1000, date: daysAgo(4), reference: 'REF-001', description: 'Vendor refund', createdBy: manager.id },
   ];
   for (const t of txs) { await prisma.transaction.create({ data: { storeId: store.id, ...t } }); }
-  console.log(`Accounts: 4 | Transactions: ${txs.length}`);
+  console.log(`Transactions: ${txs.length} (Single Entry)`);
 
   console.log('\n========================================');
   console.log('  SEED COMPLETED SUCCESSFULLY');
@@ -272,7 +266,7 @@ async function main() {
   console.log(`  GRNs:         2 (verified)`);
   console.log(`  Sales Bills:  5 (cash, UPI, card, credit)`);
   console.log(`  Returns:      1 customer + 1 supplier`);
-  console.log(`  Accounts:     4 (with 6 synced transactions)`);
+  console.log(`  Transactions: ${txs.length} (Cash Book entries)`);
   console.log('========================================');
   console.log('\nLogin credentials:');
   console.log('  Admin:      admin@pharmacyos.com / admin123');
