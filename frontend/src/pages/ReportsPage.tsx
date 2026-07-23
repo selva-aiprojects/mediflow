@@ -58,7 +58,7 @@ export default function ReportsPage() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f4" />
                       <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(value) => `$${value}`} width={60} />
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} formatter={(value: number) => formatCurrency(value)} />
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} formatter={(value: any) => formatCurrency(Number(value))} />
                       <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '20px' }} />
                       <Area type="monotone" dataKey="sales" name="Total Sales" stroke="#007BFF" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
                       <Area type="monotone" dataKey="profit" name="Net Profit" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorProfit)" />
