@@ -524,12 +524,24 @@ export class PharmacyService {
 
   async createSale(data: any) {
     const storeId = data.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    const prefix = `PH-${dateStr}-`;
+
     const lastBill = await this.prisma.salesBill.findFirst({
-      where: { storeId, deletedAt: null },
+      where: { storeId, deletedAt: null, billNo: { startsWith: prefix } },
       orderBy: { createdAt: 'desc' },
       select: { billNo: true },
     });
-    const nextNo = lastBill ? String(Number(lastBill.billNo.replace('INV-', '')) + 1).padStart(5, '0') : '00001';
+    
+    let nextNo = '0001';
+    if (lastBill && lastBill.billNo) {
+       const lastSequence = lastBill.billNo.split('-').pop();
+       if (lastSequence && !isNaN(Number(lastSequence))) {
+         nextNo = String(Number(lastSequence) + 1).padStart(4, '0');
+       }
+    }
+    const newBillNo = `${prefix}${nextNo}`;
 
     let subtotal = 0;
     let totalGst = 0;
@@ -562,7 +574,7 @@ export class PharmacyService {
       data: {
         storeId,
         customerId: data.customerId,
-        billNo: `INV-${nextNo}`,
+        billNo: newBillNo,
         subtotal: new Prisma.Decimal(subtotal),
         gstAmount: new Prisma.Decimal(totalGst),
         totalAmount: new Prisma.Decimal(totalAmount),
