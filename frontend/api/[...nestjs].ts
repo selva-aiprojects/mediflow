@@ -58,9 +58,19 @@ async function bootstrap() {
 }
 
 export default async function handler(req: express.Request, res: express.Response) {
-  if (!bootstrapPromise) {
-    bootstrapPromise = bootstrap();
+  try {
+    if (!bootstrapPromise) {
+      bootstrapPromise = bootstrap();
+    }
+    await bootstrapPromise;
+    return app(req, res);
+  } catch (error: any) {
+    console.error('API Initialization Error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "API crashed during initialization",
+      error: error?.message || String(error),
+      stack: error?.stack
+    });
   }
-  await bootstrapPromise;
-  return app(req, res);
 }
