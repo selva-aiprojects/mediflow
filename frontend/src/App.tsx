@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from '@/components/layout/Layout'
 import LoginPage from '@/pages/LoginPage'
+import LandingPage from '@/pages/LandingPage'
 import DashboardPage from '@/pages/DashboardPage'
 import UsersPage from '@/pages/UsersPage'
 import MedicinesPage from '@/pages/MedicinesPage'
@@ -22,7 +23,7 @@ import ToastContainer from '@/components/ui/toast'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token')
-  if (!token) return <Navigate to="/login" replace />
+  if (!token) return <Navigate to="/welcome" replace />
   return <>{children}</>
 }
 
@@ -31,6 +32,7 @@ export default function App() {
     <BrowserRouter>
       <ToastContainer />
       <Routes>
+        <Route path="/welcome" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
           <Route index element={<DashboardPage />} />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Eye, EyeOff, LockKeyhole, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Package, ShieldCheck, Sparkles } from 'lucide-react'
 import { authApi } from '@/lib/api'
 
 export default function LoginPage() {
@@ -55,13 +55,14 @@ export default function LoginPage() {
           </div>)}
         </div>
       </div>
-      <p className="relative text-xs text-slate-300">Copyright 2026 MediFlow. Built for modern pharmacies.</p>
+      <p className="relative text-xs text-slate-300">Copyright 2026 Cybelinx. Built for modern pharmacies.</p>
     </section>
 
     <section className="flex items-center justify-center p-6 sm:p-10">
       <div className="w-full max-w-[410px]">
-        <div className="mb-10 flex justify-center lg:hidden">
-          <img src="/brand/mediflow-logo.png" alt="MediFlow pharmacy management system" className="h-28 w-auto object-contain" />
+        <div className="mb-10 flex justify-center lg:hidden items-center gap-2">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#007BFF] to-[#33CC99] text-white shadow-lg"><Package className="h-6 w-6" /></div>
+          <p className="text-2xl font-bold tracking-tight text-[#1A2B4C]">Cybelinx</p>
         </div>
         <div>
           <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-[#eaf3ff] text-[#007BFF]"><LockKeyhole className="h-5 w-5" /></div>
@@ -93,7 +94,7 @@ export default function LoginPage() {
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#33CC99]" />
           <p>Your session is protected with secure encryption and role-based access.</p>
         </div>
-        <p className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-slate-400"><Sparkles className="h-3.5 w-3.5 text-[#33CC99]" /> Powered by MediFlow</p>
+        <p className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-slate-400"><Sparkles className="h-3.5 w-3.5 text-[#33CC99]" /> Powered by Cybelinx</p>
       </div>
     </section>
   </main>

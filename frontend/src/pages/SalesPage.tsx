@@ -299,7 +299,7 @@ export default function SalesPage() {
   // ── Print any bill (POS cart or saved from history) ───
 
   const printBill = (bill: any) => {
-    const pharmacyName = 'MediFlow Pharmacy'
+    const pharmacyName = 'Cybelinx Pharmacy'
     const pharmacyAddress = '123 Health Street, Medical District'
     const pharmacyGstin = '27AAACT1234F1Z5'
     const drugLicense = 'MH-12345'
@@ -552,7 +552,7 @@ export default function SalesPage() {
               <div className="flex items-center gap-4">
                 <div className="grid h-9 w-9 place-items-center rounded-xl bg-[#1A2B4C] text-white"><Pill className="h-4 w-4" /></div>
                 <div>
-                  <p className="text-sm font-bold text-[#1A2B4C]">MediFlow Pharmacy</p>
+                  <p className="text-sm font-bold text-[#1A2B4C]">Cybelinx Pharmacy</p>
                   <p className="text-[10px] text-slate-400">Bill: {billNo} · {today()} · {nowTime()}</p>
                 </div>
               </div>
