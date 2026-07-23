@@ -10,7 +10,16 @@ let bootstrapPromise: Promise<void> | null = null;
 async function bootstrap() {
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
 
-  nestApp.setGlobalPrefix('api');
+  // Vercel strips the /api mount path natively.
+  // We remove the global prefix and defensively ensure req.url starts from the controller root.
+  app.use((req, _res, next) => {
+    if (req.url === '/api') {
+      req.url = '/';
+    } else if (req.url.startsWith('/api/')) {
+      req.url = req.url.slice('/api'.length);
+    }
+    next();
+  });
 
   nestApp.enableCors({
     origin: (origin, callback) => {
