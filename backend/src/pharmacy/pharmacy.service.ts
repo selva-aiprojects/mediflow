@@ -605,6 +605,14 @@ export class PharmacyService {
         });
       }
     }
+
+    // Ledger Integration
+    await this.postSystemTransaction(storeId, 'Sales Revenue', 'income', 'credit', Number(totalAmount), bill.billNo, 'Sales bill total', data.createdBy);
+    if (paidAmount > 0) {
+      const assetAccount = data.paymentMode === 'cash' ? 'Petty Cash' : 'HDFC Bank';
+      await this.postSystemTransaction(storeId, assetAccount, 'asset', 'debit', Number(paidAmount), bill.billNo, `Sales receipt (${data.paymentMode || 'cash'})`, data.createdBy);
+    }
+
     return clean(bill);
   }
 
@@ -631,7 +639,7 @@ export class PharmacyService {
 
   async createInvoice(data: any) {
     const storeId = data.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
-    return clean(await this.prisma.purchaseInvoice.create({
+    const inv = await this.prisma.purchaseInvoice.create({
       data: {
         storeId,
         supplierId: data.supplierId,
@@ -647,7 +655,15 @@ export class PharmacyService {
         createdBy: data.createdBy,
       },
       include: { supplier: true },
-    }));
+    });
+
+    // Ledger Integration
+    await this.postSystemTransaction(storeId, 'Purchases', 'expense', 'debit', Number(data.totalAmount), data.invoiceNo, 'Purchase invoice', data.createdBy);
+    if (data.paidAmount > 0) {
+      await this.postSystemTransaction(storeId, 'HDFC Bank', 'asset', 'credit', Number(data.paidAmount), data.invoiceNo, 'Purchase payment', data.createdBy);
+    }
+    
+    return clean(inv);
   }
 
   async updateInvoice(id: string, data: any) {
@@ -673,7 +689,7 @@ export class PharmacyService {
     const lastRet = await this.prisma.customerReturn.findFirst({ where: { storeId, deletedAt: null }, orderBy: { createdAt: 'desc' }, select: { returnNo: true } });
     const nextNo = lastRet ? String(Number(lastRet.returnNo.replace('RET-C-', '')) + 1).padStart(4, '0') : '0001';
 
-    return clean(await this.prisma.customerReturn.create({
+    const ret = await this.prisma.customerReturn.create({
       data: {
         storeId, billId: data.billId,
         returnNo: `RET-C-${nextNo}`,
@@ -693,7 +709,13 @@ export class PharmacyService {
         } : undefined,
       },
       include: { items: true },
-    }));
+    });
+
+    if (data.refundAmount > 0) {
+      await this.postSystemTransaction(storeId, 'Sales Returns', 'expense', 'debit', Number(data.refundAmount), ret.returnNo, 'Customer refund', data.createdBy);
+      await this.postSystemTransaction(storeId, 'Petty Cash', 'asset', 'credit', Number(data.refundAmount), ret.returnNo, 'Customer refund payout', data.createdBy);
+    }
+    return clean(ret);
   }
 
   async createSupplierReturn(data: any) {
@@ -701,7 +723,7 @@ export class PharmacyService {
     const lastRet = await this.prisma.supplierReturn.findFirst({ where: { storeId, deletedAt: null }, orderBy: { createdAt: 'desc' }, select: { returnNo: true } });
     const nextNo = lastRet ? String(Number(lastRet.returnNo.replace('RET-S-', '')) + 1).padStart(4, '0') : '0001';
 
-    return clean(await this.prisma.supplierReturn.create({
+    const ret = await this.prisma.supplierReturn.create({
       data: {
         storeId, supplierId: data.supplierId,
         returnNo: `RET-S-${nextNo}`,
@@ -720,7 +742,13 @@ export class PharmacyService {
         } : undefined,
       },
       include: { supplier: true, items: true },
-    }));
+    });
+
+    if (data.creditAmount > 0) {
+      await this.postSystemTransaction(storeId, 'HDFC Bank', 'asset', 'debit', Number(data.creditAmount), ret.returnNo, 'Supplier credit note', data.createdBy);
+      await this.postSystemTransaction(storeId, 'Purchases', 'expense', 'credit', Number(data.creditAmount), ret.returnNo, 'Supplier return credit', data.createdBy);
+    }
+    return clean(ret);
   }
 
   async updateCustomerReturn(id: string, data: any) {
@@ -906,5 +934,48 @@ export class PharmacyService {
     }
 
     return clean(transaction);
+  }
+
+  // Helper for automated ledger transactions
+  private async postSystemTransaction(
+    storeId: string,
+    accountName: string,
+    accountType: string,
+    transactionType: 'credit' | 'debit',
+    amount: number,
+    reference: string,
+    description: string,
+    createdBy: string
+  ) {
+    if (amount <= 0) return;
+    
+    // Find or create account
+    let account = await this.prisma.account.findFirst({
+      where: { storeId, name: accountName }
+    });
+    
+    if (!account) {
+      account = await this.prisma.account.create({
+        data: {
+          storeId,
+          name: accountName,
+          type: accountType,
+          description: `Auto-created ${accountType} account`,
+          balance: 0,
+          isActive: true
+        }
+      });
+    }
+
+    // Call the existing createTransaction
+    await this.createTransaction({
+      storeId,
+      accountId: account.id,
+      type: transactionType,
+      amount,
+      reference,
+      description,
+      createdBy
+    });
   }
 }
