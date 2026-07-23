@@ -15,6 +15,7 @@ interface CartItem {
   genericName: string
   strength: string
   form: string
+  unitType: string
   schedule: string
   hsnCode: string
   batchId: string
@@ -241,6 +242,7 @@ export default function SalesPage() {
         genericName: med.genericName || '',
         strength: med.strength || '',
         form: med.form,
+        unitType: med.unitType || 'strip',
         schedule: med.schedule || '',
         hsnCode: med.hsnCode || '',
         batchId: b?.id || '',
@@ -484,7 +486,7 @@ export default function SalesPage() {
           form: c.form,
           hsnCode: c.hsnCode,
           quantity: c.quantity,
-          unitType: 'strip',
+          unitType: c.unitType,
           mrp: c.mrp,
           unitPrice: c.unitPrice,
           discountPercent: c.discountPercent,
@@ -712,7 +714,7 @@ export default function SalesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-[#1A2B4C]">{item.brandName}</span>
-                              <span className="text-[11px] text-slate-400">{item.strength} · {item.form}</span>
+                              <span className="text-[11px] text-slate-400">{item.strength} · {item.form} · {item.unitType}</span>
                               {item.schedule && <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold text-rose-600">Sch {item.schedule}</span>}
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-400">
@@ -805,7 +807,7 @@ export default function SalesPage() {
                   <div className="space-y-1.5">
                     {cart.map((item) => (
                       <div key={item.id} className="flex items-center justify-between text-[11px]">
-                        <span className="min-w-0 flex-1 truncate text-slate-600">{item.brandName} x{item.quantity}</span>
+                        <span className="min-w-0 flex-1 truncate text-slate-600">{item.brandName} x{item.quantity} {item.unitType}</span>
                         <span className="ml-2 shrink-0 font-medium text-[#1A2B4C]">{fmt(item.totalAmount)}</span>
                       </div>
                     ))}
