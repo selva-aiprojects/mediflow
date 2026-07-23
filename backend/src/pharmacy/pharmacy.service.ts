@@ -124,7 +124,7 @@ export class PharmacyService {
   }
 
   async createUser(data: any) {
-    const bcrypt = require('bcrypt');
+    const bcrypt = require('bcryptjs');
     const passwordHash = await bcrypt.hash(data.password || 'Temp@123', 10);
     return clean(await this.prisma.user.create({
       data: {

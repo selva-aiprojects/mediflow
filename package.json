@@ -15,6 +15,7 @@
     "vercel-build": "npm run build:backend"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^5.22.0",
+    "prisma": "5.22.0"
   }
 }

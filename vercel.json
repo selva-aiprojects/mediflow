@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "medflow",
-  "installCommand": "rm -rf node_modules frontend/node_modules backend/node_modules && npm install --include=dev && node node_modules/prisma/build/index.js generate --schema=backend/prisma/schema.prisma && npm run --workspace=backend build && npm run --workspace=frontend build",
+  "installCommand": "npm ci --include=dev && node ./node_modules/prisma/build/index.js generate --schema=backend/prisma/schema.prisma && npm run build",
   "builds": [
     {
       "src": "api/index.ts",
@@ -29,8 +29,11 @@
       "dest": "/api/index.ts"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "/frontend/index.html"
     }
   ]
 }
