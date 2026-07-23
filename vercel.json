@@ -1,7 +1,7 @@
 {
   "version": 2,
   "name": "medflow",
-  "installCommand": "(test -f vercel.json || cd ../) && npm ci --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
+  "installCommand": "if [ ! -f vercel.json ]; then cd ../; fi && npm ci --include=dev && npx prisma generate --schema=backend/prisma/schema.prisma && npm run build",
   "builds": [
     {
       "src": "api/index.ts",
