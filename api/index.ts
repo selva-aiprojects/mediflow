@@ -10,6 +10,15 @@ let bootstrapPromise: Promise<void> | null = null;
 async function bootstrap() {
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(app));
 
+  app.use((req, res, next) => {
+    res.setHeader('X-Vercel-Api-Reached', 'true');
+    res.setHeader('X-Vercel-Req-Url', req.url);
+    if (req.url === '/api/test-vercel' || req.url === '/test-vercel') {
+      return res.json({ success: true, url: req.url, message: "Vercel API is reached!" });
+    }
+    next();
+  });
+
   // Vercel strips the /api mount path natively.
   // We remove the global prefix and defensively ensure req.url starts from the controller root.
   app.use((req, _res, next) => {
