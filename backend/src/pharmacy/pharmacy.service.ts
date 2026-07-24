@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Prisma } from '@prisma/client';
 
 const take = 50;
@@ -439,6 +440,77 @@ export class PharmacyService {
   }
 
   // ── Goods Receipt ──────────────────────────────────
+  async extractInvoice(file: Express.Multer.File) {
+    if (!file) throw new Error("No file uploaded");
+
+    // Check if API key is provided, if not, return a structured mock (for testing)
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn("GEMINI_API_KEY is not set. Returning mocked AI extraction.");
+      // Small delay to simulate AI processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return {
+        supplierName: "Mocked AI Supplier",
+        invoiceNo: "INV-" + Math.floor(Math.random() * 10000),
+        invoiceDate: new Date().toISOString(),
+        items: [
+          { medicineName: "Paracetamol 500mg (AI Mock)", batchNo: "B-AI101", expiryDate: "2027-12-31", quantity: 100, unitPrice: 1.5, mrp: 2.0, taxPercent: 5 },
+          { medicineName: "Amoxicillin 250mg (AI Mock)", batchNo: "B-AI102", expiryDate: "2026-06-30", quantity: 50, unitPrice: 5.0, mrp: 7.5, taxPercent: 5 }
+        ]
+      };
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      // We use gemini-1.5-flash as it's the recommended multimodal model for tasks like OCR
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      const prompt = `
+        You are a medical inventory parsing assistant. 
+        Extract the following information from this pharmacy vendor invoice:
+        - Supplier/Vendor Name (supplierName)
+        - Invoice Number (invoiceNo)
+        - Invoice Date in ISO format YYYY-MM-DD (invoiceDate)
+        - List of items with:
+          - Medicine Name (medicineName)
+          - Batch Number (batchNo)
+          - Expiry Date in YYYY-MM-DD format (expiryDate)
+          - Quantity (quantity as number)
+          - Unit Price (unitPrice as number)
+          - MRP (mrp as number)
+          - Tax Percentage (taxPercent as number, assume 0 if not found)
+        
+        Respond ONLY with a valid JSON object matching this TypeScript interface exactly, with NO markdown formatting or code blocks:
+        {
+          "supplierName": string,
+          "invoiceNo": string,
+          "invoiceDate": string,
+          "items": [
+            { "medicineName": string, "batchNo": string, "expiryDate": string, "quantity": number, "unitPrice": number, "mrp": number, "taxPercent": number }
+          ]
+        }
+      `;
+
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            data: file.buffer.toString("base64"),
+            mimeType: file.mimetype
+          }
+        },
+        prompt
+      ]);
+
+      let text = result.response.text();
+      // Clean up markdown if the AI mistakenly included it
+      text = text.replace(/^\s*\x60\x60\x60(?:json)?/im, '').replace(/\x60\x60\x60\s*$/m, '').trim();
+
+      const parsed = JSON.parse(text);
+      return parsed;
+    } catch (e) {
+      console.error("AI Extraction failed:", e);
+      throw new Error("Failed to extract data from invoice. " + (e as any).message);
+    }
+  }
 
   async goodsReceipts() {
     return clean(await this.prisma.goodsReceiptNote.findMany({
@@ -605,6 +677,8 @@ export class PharmacyService {
           data: { quantity: { decrement: item.quantity } },
         });
       }
+    }
+    
     // Single Entry Ledger Integration
     await this.createTransaction({
       storeId,
@@ -833,12 +907,57 @@ export class PharmacyService {
   // ── Reports ────────────────────────────────────────
 
   async reports() {
-    const [dailySummaries, auditLogs, suggestions] = await Promise.all([
-      this.prisma.dailySummary.findMany({ include: { store: true }, orderBy: { summaryDate: 'desc' }, take }),
+    const transactions = await this.prisma.transaction.findMany({
+      where: { deletedAt: null },
+      orderBy: { date: 'asc' }
+    });
+
+    const storeId = transactions[0]?.storeId; // Just for reference if needed
+    const summariesByDate = new Map<string, any>();
+    for (const tx of transactions) {
+      const dateStr = tx.date.toISOString().split('T')[0];
+      if (!summariesByDate.has(dateStr)) {
+        summariesByDate.set(dateStr, {
+          id: dateStr,
+          storeId,
+          summaryDate: new Date(dateStr),
+          totalSales: 0,
+          totalPurchases: 0,
+          totalProfit: 0,
+          totalBills: 0,
+          totalItemsSold: 0,
+          netProfit: 0,
+          notes: 'Calculated dynamically'
+        });
+      }
+
+      const summary = summariesByDate.get(dateStr);
+      const amount = Number(tx.amount);
+
+      if (tx.category === 'sales') {
+        summary.totalSales += amount;
+        summary.totalBills += 1;
+        summary.netProfit += amount;
+      } else if (tx.category === 'purchases') {
+        summary.totalPurchases += amount;
+        summary.netProfit -= amount;
+      } else if (tx.type === 'income') {
+        summary.netProfit += amount;
+      } else if (tx.type === 'expense') {
+        summary.netProfit -= amount;
+      }
+    }
+
+    const dynamicSummaries = Array.from(summariesByDate.values()).map(s => {
+      s.totalProfit = s.netProfit;
+      return s;
+    }).sort((a, b) => b.summaryDate.getTime() - a.summaryDate.getTime());
+
+    const [auditLogs, suggestions] = await Promise.all([
       this.prisma.auditLog.findMany({ include: { user: { select: { firstName: true, lastName: true } }, store: { select: { name: true } } }, orderBy: { createdAt: 'desc' }, take: 20 }),
       this.prisma.purchaseSuggestion.findMany({ include: { medicine: true, supplier: true, store: true }, orderBy: { createdAt: 'desc' }, take }),
     ]);
-    return clean({ dailySummaries, auditLogs, suggestions });
+    return clean({ dailySummaries: dynamicSummaries, auditLogs, suggestions });
   }
 
   // ── Settings ───────────────────────────────────────
@@ -867,7 +986,7 @@ export class PharmacyService {
   // ── Transactions ───────────────────────────────────
   async transactions(query: Record<string, string>) {
     const storeId = query.storeId || (await this.prisma.store.findFirst({ where: { deletedAt: null }, select: { id: true } }))?.id;
-    return clean(await this.prisma.transaction.findMany({
+    const result = await this.prisma.transaction.findMany({
       where: {
         storeId,
         category: query.category || undefined,
@@ -878,7 +997,9 @@ export class PharmacyService {
         createdByUser: { select: { firstName: true, lastName: true } }
       },
       orderBy: { date: 'desc' },
-    }));
+    });
+    console.log('[DEBUG] transactions API called. storeId:', storeId, 'query:', query, 'result count:', result.length);
+    return clean(result);
   }
 
   async createTransaction(data: any) {

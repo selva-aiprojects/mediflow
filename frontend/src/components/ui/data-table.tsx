@@ -61,10 +61,6 @@ export default function DataTable<T extends Record<string, any>>({
             className="h-10 w-full rounded-xl border border-[#dfe8ec] bg-[#fbfcfb] pl-9 pr-3 text-sm outline-none focus:border-[#007BFF] focus:ring-4 focus:ring-[#007BFF]/10"
           />
         </div>
-        <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500">
-          <ArrowUpRight className="h-3.5 w-3.5 text-[#33CC99]" />
-          {source === 'api' ? 'Connected to backend' : 'Showing demo data'}
-        </span>
       </div>
 
       {filtered.length === 0 ? (

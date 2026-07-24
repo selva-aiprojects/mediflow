@@ -8,6 +8,10 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
+
+  const storeId = localStorage.getItem('activeStoreId')
+  if (storeId) config.headers['X-Store-Id'] = storeId
+
   return config
 })
 
@@ -98,9 +102,16 @@ export const purchaseOrdersApi = {
 }
 
 export const goodsReceiptApi = {
-  getAll: () => api.get('/goods-receipt'),
-  create: (data: any) => api.post('/goods-receipt', data),
-  update: (id: string, data: any) => api.patch(`/goods-receipt/${id}`, data),
+  getAll: (q?: string) => api.get(`/goods-receipt${q ? `?${q}` : ''}`),
+  create: (d: any) => api.post('/goods-receipt', d),
+  update: (id: string, d: any) => api.patch(`/goods-receipt/${id}`, d),
+  extract: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post('/goods-receipt/extract', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  }
 }
 
 export const returnsApi = {

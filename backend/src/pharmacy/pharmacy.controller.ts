@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { PharmacyService } from './pharmacy.service';
 
@@ -118,6 +119,12 @@ export class PharmacyController {
   // ── Goods Receipt ──────────────────────────────────
   @Get('goods-receipt')
   goodsReceipts() { return this.pharmacy.goodsReceipts(); }
+
+  @Post('goods-receipt/extract')
+  @UseInterceptors(FileInterceptor('file'))
+  extractInvoice(@UploadedFile() file: Express.Multer.File) {
+    return this.pharmacy.extractInvoice(file);
+  }
 
   @Post('goods-receipt')
   createGoodsReceipt(@Body() body: any) { return this.pharmacy.createGoodsReceipt(body); }

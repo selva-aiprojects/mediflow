@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Pill, ShoppingCart, Package, Users, Store, BarChart3, LogOut, ChevronRight, ClipboardList, Truck, RotateCcw, FileText, QrCode, Bell, PanelLeftClose, Settings, Stethoscope, Building2, Wallet } from 'lucide-react'
+import { LayoutDashboard, Pill, ShoppingCart, Package, Users, Store as StoreIcon, BarChart3, LogOut, ChevronRight, ClipboardList, Truck, RotateCcw, FileText, QrCode, Bell, PanelLeftClose, Settings, Stethoscope, Building2, Wallet, ChevronDown } from 'lucide-react'
+import { useStoreContext } from '@/contexts/StoreContext'
 
 const primaryItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/' },
@@ -22,7 +23,7 @@ const operationsItems = [
 const managementItems = [
   { icon: Wallet, label: 'Accounts', path: '/accounts' },
   { icon: Users, label: 'Team members', path: '/users' },
-  { icon: Store, label: 'Stores', path: '/stores' },
+  { icon: StoreIcon, label: 'Stores', path: '/stores' },
   { icon: BarChart3, label: 'Reports', path: '/reports' },
   { icon: FileText, label: 'Invoices', path: '/invoices' },
   { icon: Bell, label: 'Notifications', path: '/notifications' },
@@ -40,6 +41,13 @@ function NavGroup({ title, items, collapsed }: { title: string; items: typeof pr
 }
 
 export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const { stores, activeStore, setActiveStoreId } = useStoreContext();
+
+  const formatStoreLabel = (s: any) => {
+    if (!s) return 'Loading Store...';
+    return [s.name, s.city, s.addressLine1].filter(Boolean).join(' - ');
+  };
+
   return <aside className={cn('fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-white/[.08] bg-[#1A2B4C] px-3 py-5 text-white transition-all duration-300 lg:flex', collapsed ? 'w-[88px]' : 'w-[268px]')}>
     <div className={cn('mb-8 flex items-center px-2', collapsed ? 'justify-center' : 'justify-between')}>
       <div className="flex items-center gap-3 overflow-hidden">
@@ -50,7 +58,32 @@ export default function Sidebar({ collapsed, onToggle }: { collapsed: boolean; o
     </div>
     <nav className="flex-1 overflow-y-auto"><NavGroup title="Workspace" items={primaryItems} collapsed={collapsed} /><NavGroup title="Masters" items={masterItems} collapsed={collapsed} /><NavGroup title="Operations" items={operationsItems} collapsed={collapsed} /><NavGroup title="Management" items={managementItems} collapsed={collapsed} /></nav>
     <div className="mt-3 border-t border-white/[.07] pt-3">
-      {!collapsed && <div className="mb-3 flex items-center gap-3 rounded-xl bg-white/[.06] p-3"><div className="grid h-8 w-8 place-items-center rounded-full bg-[#007BFF] text-xs font-bold text-white">JD</div><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">John Doe</p><p className="text-[11px] text-slate-400">Store manager</p></div></div>}
+      {!collapsed && (
+        <div className="mb-3">
+          <div className="relative group">
+            <button className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/[.06] p-3 text-left hover:bg-white/[.1]">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold text-white">{formatStoreLabel(activeStore)}</p>
+                <p className="text-[11px] text-[#33CC99]">{activeStore?.isHeadOffice ? 'Head Office' : 'Branch Store'}</p>
+              </div>
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            </button>
+            <div className="absolute bottom-full left-0 hidden w-full pb-2 group-hover:block">
+              <div className="flex w-full flex-col overflow-hidden rounded-xl bg-[#10213b] border border-white/[.08] shadow-xl">
+                {stores.map((s) => (
+                <button 
+                  key={s.id} 
+                  onClick={() => setActiveStoreId(s.id)}
+                  className={cn("px-4 py-3 text-left text-xs transition-colors hover:bg-white/[.05]", s.id === activeStore?.id ? 'text-[#33CC99] font-bold bg-white/[.02]' : 'text-slate-300')}
+                >
+                  {formatStoreLabel(s)}
+                </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/' }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 hover:bg-white/[.06] hover:text-white"><LogOut className="h-[18px] w-[18px]" />{!collapsed && 'Sign out'}</button>
       {collapsed && <button onClick={onToggle} aria-label="Expand navigation" className="mt-1 flex w-full justify-center rounded-xl p-2.5 text-slate-500 hover:bg-white/[.06] hover:text-white"><ChevronRight className="h-[18px] w-[18px]" /></button>}
     </div>

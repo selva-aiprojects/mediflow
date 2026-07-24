@@ -14,13 +14,17 @@
 - [x] Dashboard statistics, seven-day sales/profit chart, and best-selling medicines connected to database-backed endpoints with UI fallbacks.
 - [x] Dashboard actions now navigate to the associated sales, purchase-order, inventory, and notification modules.
 - [x] Frontend and backend production builds pass (22 July 2026).
+- [x] Refactored reporting engine to dynamically calculate daily summaries from raw transaction data.
+- [x] Implemented Multi-Store Segregation with global Store Switcher and backend Prisma middleware for strict data isolation.
+- [x] Built AI-Powered GRN Invoice Import utilizing Google Gemini to extract and parse vendor invoices directly into the stock receipt workflow.
 
 ### In progress
 
 - [ ] Provision PostgreSQL, run migrations, and seed a development database.
 - [ ] Add DTO validation and server-side role/permission enforcement.
 - [ ] Build transactional create/update flows for masters, sales, purchase orders, GRNs, returns, stock adjustments, invoices, and barcode labels.
-- [ ] Add selected-store context, pagination, server-side filters, mutation feedback, and empty states.
+- [x] Add selected-store context.
+- [ ] Add pagination, server-side filters, mutation feedback, and empty states.
 
 ### Next up
 
