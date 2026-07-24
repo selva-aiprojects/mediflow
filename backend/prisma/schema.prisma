@@ -237,6 +237,7 @@ model Medicine {
   isPrescriptionRequired  Boolean  @default(false)
   isActive                Boolean  @default(true)
   rackId                  String?
+  rackNumber              String?  @db.VarChar(50)
   minStockLevel           Int      @default(10)
   maxStockLevel           Int      @default(500)
   reorderLevel            Int      @default(50)

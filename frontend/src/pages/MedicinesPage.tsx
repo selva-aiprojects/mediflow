@@ -9,7 +9,7 @@ import { FormField, FormSelect, FormTextarea } from '@/components/ui/form-field'
 import ConfirmDialog from '@/components/ui/confirm-dialog'
 import { showToast } from '@/components/ui/toast'
 
-const formDefaults = { brandName: '', genericName: '', strength: '', form: 'tablet', schedule: '', gstPercent: '12', hsnCode: '', barcode: '', unitType: 'strip', isBatchEnabled: true, isExpiryEnabled: true, isPrescriptionRequired: false }
+const formDefaults = { brandName: '', genericName: '', strength: '', form: 'tablet', schedule: '', gstPercent: '12', hsnCode: '', barcode: '', unitType: 'strip', rackNumber: '', isBatchEnabled: true, isExpiryEnabled: true, isPrescriptionRequired: false }
 const formOptions = { form: [{ value: 'tablet', label: 'Tablet' }, { value: 'capsule', label: 'Capsule' }, { value: 'syrup', label: 'Syrup' }, { value: 'injection', label: 'Injection' }, { value: 'cream', label: 'Cream' }, { value: 'ointment', label: 'Ointment' }, { value: 'drops', label: 'Drops' }, { value: 'inhaler', label: 'Inhaler' }, { value: 'powder', label: 'Powder' }, { value: 'gel', label: 'Gel' }], schedule: [{ value: '', label: 'General' }, { value: 'H', label: 'Schedule H' }, { value: 'H1', label: 'Schedule H1' }, { value: 'X', label: 'Schedule X' }], unitType: [{ value: 'strip', label: 'Strip' }, { value: 'bottle', label: 'Bottle' }, { value: 'vial', label: 'Vial' }, { value: 'tube', label: 'Tube' }, { value: 'box', label: 'Box' }, { value: 'piece', label: 'Piece' }] }
 
 export default function MedicinesPage() {
@@ -27,7 +27,7 @@ export default function MedicinesPage() {
   useEffect(() => { load() }, [])
 
   const openCreate = () => { setForm(formDefaults); setEditing(null); setModalOpen(true) }
-  const openEdit = (row: any) => { setForm({ brandName: row.brandName || '', genericName: row.genericName || '', strength: row.strength || '', form: row.form || 'tablet', schedule: row.schedule || '', gstPercent: String(row.gstPercent || 12), hsnCode: row.hsnCode || '', barcode: row.barcode || '', unitType: row.unitType || 'strip', isBatchEnabled: row.isBatchEnabled ?? true, isExpiryEnabled: row.isExpiryEnabled ?? true, isPrescriptionRequired: row.isPrescriptionRequired ?? false }); setEditing(row); setModalOpen(true) }
+  const openEdit = (row: any) => { setForm({ brandName: row.brandName || '', genericName: row.genericName || '', strength: row.strength || '', form: row.form || 'tablet', schedule: row.schedule || '', gstPercent: String(row.gstPercent || 12), hsnCode: row.hsnCode || '', barcode: row.barcode || '', unitType: row.unitType || 'strip', rackNumber: row.rackNumber || '', isBatchEnabled: row.isBatchEnabled ?? true, isExpiryEnabled: row.isExpiryEnabled ?? true, isPrescriptionRequired: row.isPrescriptionRequired ?? false }); setEditing(row); setModalOpen(true) }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +55,7 @@ export default function MedicinesPage() {
     { header: 'GST', render: (r) => `${r.gstPercent || 0}%` },
     { header: 'MRP', render: (r) => r.batches?.length ? formatCurrency(Number(r.batches[0].mrp)) : '—' },
     { header: 'Stock', render: (r) => <span className="font-bold">{r.batches?.reduce((s: number, b: any) => s + b.quantity, 0) || 0}</span> },
+    { header: 'Rack No.', render: (r) => r.rackNumber || '—' },
     { header: '', render: (r) => <div className="flex gap-1"><button onClick={(e) => { e.stopPropagation(); openEdit(r) }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#007BFF] hover:bg-[#eaf3ff]">Edit</button><button onClick={(e) => { e.stopPropagation(); setDeleteTarget(r) }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-500 hover:bg-rose-50">Delete</button></div>, className: 'text-right' },
   ]
 
@@ -75,6 +76,7 @@ export default function MedicinesPage() {
         <FormField label="HSN Code" value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} placeholder="e.g., 3004" />
         <FormField label="Barcode" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} placeholder="Scan or type barcode" />
         <FormSelect label="Unit type" value={form.unitType} onChange={(e) => setForm({ ...form, unitType: e.target.value })} options={formOptions.unitType} />
+        <FormField label="Rack number" value={form.rackNumber} onChange={(e) => setForm({ ...form, rackNumber: e.target.value })} placeholder="e.g., A1-04" />
         <div className="sm:col-span-2 flex flex-wrap gap-4 pt-2">
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isBatchEnabled} onChange={(e) => setForm({ ...form, isBatchEnabled: e.target.checked })} className="h-4 w-4 rounded" /> Batch tracking</label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isExpiryEnabled} onChange={(e) => setForm({ ...form, isExpiryEnabled: e.target.checked })} className="h-4 w-4 rounded" /> Expiry tracking</label>

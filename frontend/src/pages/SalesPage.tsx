@@ -69,6 +69,7 @@ interface Medicine {
   unitType: string
   isPrescriptionRequired?: boolean
   isBatchEnabled?: boolean
+  rackNumber?: string
   batches?: Batch[]
 }
 

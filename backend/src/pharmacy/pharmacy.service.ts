@@ -239,6 +239,7 @@ export class PharmacyService {
         minStockLevel: data.minStockLevel,
         maxStockLevel: data.maxStockLevel,
         reorderLevel: data.reorderLevel,
+        rackNumber: data.rackNumber,
       },
       include: { category: true, manufacturer: true },
     }));
@@ -246,7 +247,7 @@ export class PharmacyService {
 
   async updateMedicine(id: string, data: any) {
     const updateData: any = {};
-    for (const key of ['brandName', 'genericName', 'strength', 'form', 'schedule', 'categoryId', 'manufacturerId', 'hsnCode', 'barcode', 'isBatchEnabled', 'isExpiryEnabled', 'isPrescriptionRequired', 'unitType', 'minStockLevel', 'maxStockLevel', 'reorderLevel', 'isActive']) {
+    for (const key of ['brandName', 'genericName', 'strength', 'form', 'schedule', 'categoryId', 'manufacturerId', 'hsnCode', 'barcode', 'isBatchEnabled', 'isExpiryEnabled', 'isPrescriptionRequired', 'unitType', 'minStockLevel', 'maxStockLevel', 'reorderLevel', 'isActive', 'rackNumber']) {
       if (data[key] !== undefined) updateData[key] = data[key];
     }
     if (data.gstPercent !== undefined) updateData.gstPercent = new Prisma.Decimal(data.gstPercent);
